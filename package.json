@@ -1,0 +1,15 @@
+{
+  "name": "graphbuilder",
+  "version": "1.0.0",
+  "description": "generate a citation graph",
+  "main": ".postcssrc.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "xdze2",
+  "license": "MIT",
+  "devDependencies": {
+    "ts-node": "^7.0.0",
+    "typescript": "^2.9.2"
+  }
+}
