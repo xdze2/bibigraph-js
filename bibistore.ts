@@ -30,16 +30,6 @@ export function stored_doi_list(){
 }
 
 
-var promise = new Promise(function(resolve, reject) {
-  // do a thing, possibly async, then…
-
-  if (/* everything turned out fine */) {
-    resolve("Stuff worked!");
-  }
-  else {
-    reject(Error("It broke"));
-  }
-});
 
 
 export function query(doi_list){
@@ -47,7 +37,7 @@ export function query(doi_list){
     and store the metadata in storage.
    */
 
-  const MAILADRESS = 'bibigraph@mail.com';
+  const MAILADRESS = 'bibigraph@mail.com'
   const USERAGENT = 'bibigraph project https://github.com/xdze2/bibigraph'
 
 
@@ -57,7 +47,7 @@ export function query(doi_list){
   const doi_pattern = /^10.\d{4,9}\/[-._;()\/:A-Z0-9]+$/i;
 
   const rejected_doi = doi_list.filter( doi => !doi_pattern.test(doi) )
-  if(rejected_doi){
+  if(rejected_doi){ // TODO:  not working
     console.log('pattern rejected doi:', rejected_doi)
   }
 
@@ -68,7 +58,7 @@ export function query(doi_list){
 
   const url = 'http://api.crossref.org/works'
 
-  axios.get(url, {
+  return axios.get(url, {
       params: {
         mailto: MAILADRESS,
         filter: concatenated_doi_list,
@@ -89,9 +79,6 @@ export function query(doi_list){
           console.log('response', response);
       }
 
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
+    }, x=>x)
 
 }
