@@ -6,6 +6,13 @@
 - output:
   - a graph i.e. Object like doi:[references]
   - svg graph, metadata
+
+Steps:
+1. init a new graph from a list of nodes
+2. grow N generations downward
+3. select some nodes (max cited)
+4. grow a new graph upward from the selected nodes
+
  */
 
 import * as bibistore from './bibistore'
@@ -74,6 +81,11 @@ export function growOneGen( graph ){
 
 }
 
+
+export function select_minimumcited(graph, minimumcited:number ){
+  const keys = Object.keys(graph);
+  return keys.filter( key=> graph[key].citedby.length >= minimumcited  )
+}
 
 // Test:
 /*

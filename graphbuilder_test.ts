@@ -16,4 +16,7 @@ let graph = graphbuilder.init_graph( doi_list )
 
 graphbuilder.growOneGen( graph )
   .then( graph=>graphbuilder.growOneGen( graph ) )
-  .then( graph=>console.log('graph then', graph) )
+  .then( function(graph){
+    let nodes = graphbuilder.select_minimumcited(graph, 4)
+    console.log('nodes selected', nodes)
+  })
