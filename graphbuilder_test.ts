@@ -19,4 +19,7 @@ graphbuilder.growOneGen( graph )
   .then( function(graph){
     let nodes = graphbuilder.select_minimumcited(graph, 4)
     console.log('nodes selected', nodes)
+
+    console.log('upward', graphbuilder.upward_graph( graph, nodes ) )
+
   })

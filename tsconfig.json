@@ -6,7 +6,8 @@
         "noLib": false,
         "sourceMap": true,
         "allowJs": true,
-        "rootDir": "."
+        "rootDir": ".",
+        "lib": ["dom","es7"],
     },
     "exclude": [
         "node_modules",

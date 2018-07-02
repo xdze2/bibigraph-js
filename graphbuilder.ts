@@ -13,6 +13,8 @@ Steps:
 3. select some nodes (max cited)
 4. grow a new graph upward from the selected nodes
 
+
+
  */
 
 import * as bibistore from './bibistore'
@@ -87,6 +89,30 @@ export function select_minimumcited(graph, minimumcited:number ){
   return keys.filter( key=> graph[key].citedby.length >= minimumcited  )
 }
 
+
+export function upward_graph( graph, selectednodes ){
+  let nodes = []
+  let links = []
+
+  let nodes_to_check = selectednodes
+
+  while( nodes_to_check.length ){
+    const doi = nodes_to_check.pop()
+    nodes.push(doi)
+
+    graph[doi].citedby.forEach(function(citingdoi){
+
+      links.push( [doi, citingdoi] )
+      if( !nodes_to_check.includes(citingdoi) && !nodes.includes(citingdoi)  ){
+        nodes_to_check.push( citingdoi )
+      }
+    })
+
+  }
+
+  return {nodes:nodes, links:links}
+
+}
 // Test:
 /*
 let doi_list = ['10.1103/PhysRevA.62.012306']
