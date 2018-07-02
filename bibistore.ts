@@ -32,11 +32,11 @@ export function stored_doi_list(){
 
 
 
-export function query(doi_list){
+export function query(doi_list: string[]){
   /* Query the Crossref API for the given list of doi,
     and store the metadata in storage.
    */
-
+  console.log(' -- query: ', doi_list.length )
   const MAILADRESS = 'bibigraph@mail.com'
   const USERAGENT = 'bibigraph project https://github.com/xdze2/bibigraph'
 
@@ -47,7 +47,7 @@ export function query(doi_list){
   const doi_pattern = /^10.\d{4,9}\/[-._;()\/:A-Z0-9]+$/i;
 
   const rejected_doi = doi_list.filter( doi => !doi_pattern.test(doi) )
-  if(rejected_doi){ // TODO:  not working
+  if(rejected_doi.length){
     console.log('pattern rejected doi:', rejected_doi)
   }
 
@@ -62,23 +62,24 @@ export function query(doi_list){
       params: {
         mailto: MAILADRESS,
         filter: concatenated_doi_list,
-        rows:40
+        rows:80
       },
       headers: { 'User-Agent': USERAGENT },
     })
     .then(function (response) {
       if(response.status == 200){
-          const items =  response.data.message.items;
 
+          const items =  response.data.message.items;
+          console.log('response ', items.length)
           for (let metadata of items) {
             let doi = format_doi( metadata['DOI'] )
             storage[doi] =  metadata // not tracked by VueJS
-            console.log(`${doi} added`)
           }
+
       } else {
-          console.log('response', response);
+          console.log('response error', response);
       }
 
-    }, x=>x)
+    })
 
 }
