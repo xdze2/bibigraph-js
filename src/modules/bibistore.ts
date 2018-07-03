@@ -56,7 +56,7 @@ export function query(doi_list: string[]){
   // Query:
   const concatenated_doi_list = doi_list.map( s=>`doi:${s}` ).join(',')
 
-  const url = 'http://api.crossref.org/works'
+  const url = 'https://api.crossref.org/works'
 
   return axios.get(url, {
       params: {
@@ -64,7 +64,8 @@ export function query(doi_list: string[]){
         filter: concatenated_doi_list,
         rows:80
       },
-      headers: { 'User-Agent': USERAGENT },
+      //withCredentials: true,
+      //headers: { 'User-Agent': USERAGENT   },
     })
     .then(function (response) {
       if(response.status == 200){
