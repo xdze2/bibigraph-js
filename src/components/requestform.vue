@@ -1,7 +1,7 @@
 <template>
-  <div class="requestform">
+<div class="requestform">
 
-    <h1>hello</h1>
+    <h1>bibigraph</h1>
 
     <textarea v-model="doitext" placeholder="give a doi list, comma or space separated"></textarea>
     <button v-on:click="submit(doitext)">go</button>
@@ -17,39 +17,39 @@
 
 <p v-if="status">{{ status }}</p>
 
-  </div>
+</div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import * as graphbuilder from '../modules/graphbuilder'
+import * as graphbuilder from '../modules/graphbuilder';
 
 export default Vue.extend({
   name: 'requestform',
-  data: function(){ return {
+  data() { return {
       doitext: '',
-      status: ''
-  }},
+      status: '',
+  }; },
   methods: {
-    submit: function(doitext){
-      let doi_list = doitext.split(/[,;\s]/).filter( x=>x );
-      console.log('hello', doi_list)
-      this.status = 'go'
-      const _this = this
-      let graph = graphbuilder.init_graph( doi_list )
+    submit(doitext: string) {
+      const doi_list = doitext.split(/[,;\s]/).filter( (x) => x );
+      console.log('hello', doi_list);
+      this.status = 'go';
+      const _this = this;
+      const graph = graphbuilder.init_graph( doi_list );
 
       graphbuilder.growOneGen( graph )
-        .then( graph=>graphbuilder.growOneGen( graph ) )
-        .then( function(graph){
-          let nodes = graphbuilder.select_minimumcited(graph, 4)
-          console.log('nodes selected', nodes)
-          let nodelinks = graphbuilder.upward_graph( graph, nodes )
-          console.log('upward', nodelinks )
-          _this.status = nodelinks
-        })
+        .then( (graph) => graphbuilder.growOneGen( graph ) )
+        .then( function(graph) {
+          const nodes = graphbuilder.select_minimumcited(graph, 4);
+          console.log('nodes selected', nodes);
+          const nodelinks = graphbuilder.upward_graph( graph, nodes );
+          console.log('upward', nodelinks );
+          _this.status = nodelinks;
+        });
 
     },
-  }
+  },
 });
 </script>
 

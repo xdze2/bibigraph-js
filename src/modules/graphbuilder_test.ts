@@ -8,18 +8,18 @@
   - svg graph, metadata
  */
 
-import * as graphbuilder from './graphbuilder'
+import * as graphbuilder from './graphbuilder';
 
 
-let doi_list = ['10.1103/PhysRevA.62.012306']
-let graph = graphbuilder.init_graph( doi_list )
+const doi_list = ['10.1103/PhysRevA.62.012306'];
+const graph = graphbuilder.init_graph( doi_list );
 
 graphbuilder.growOneGen( graph )
-  .then( graph=>graphbuilder.growOneGen( graph ) )
-  .then( function(graph){
-    let nodes = graphbuilder.select_minimumcited(graph, 4)
-    console.log('nodes selected', nodes)
+  .then( (graph) => graphbuilder.growOneGen( graph ) )
+  .then( function(graph) {
+    const nodes = graphbuilder.select_minimumcited(graph, 4);
+    console.log('nodes selected', nodes);
 
-    console.log('upward', graphbuilder.upward_graph( graph, nodes ) )
+    console.log('upward', graphbuilder.upward_graph( graph, nodes ) );
 
-  })
+  });
