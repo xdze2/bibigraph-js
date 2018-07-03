@@ -1,22 +1,25 @@
 {
-  "name": "graphbuilder",
-  "version": "1.0.0",
-  "description": "generate a citation graph",
-  "main": ".postcssrc.js",
+  "name": "bibigraph-js",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "xdze2",
-  "license": "MIT",
-  "devDependencies": {
-    "@types/chai": "^4.1.4",
-    "@types/mocha": "^5.2.4",
-    "chai": "^4.1.2",
-    "mocha": "^5.2.0",
-    "ts-node": "^7.0.0",
-    "typescript": "^2.9.2"
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "axios": "^0.18.0"
-  }
+    "vue": "^2.5.16",
+    "vue-router": "^3.0.1"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "^3.0.0-beta.15",
+    "@vue/cli-plugin-typescript": "^3.0.0-beta.15",
+    "@vue/cli-service": "^3.0.0-beta.15",
+    "vue-template-compiler": "^2.5.16"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ]
 }
