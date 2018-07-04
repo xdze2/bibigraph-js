@@ -7,10 +7,12 @@
 
 import axios from 'axios';
 
-const PREFIX = 'doi_'
+//
+// Storage
+//
 
 let storage = {}
-
+const PREFIX = 'doi_' // the prefix is added to the key
 
 function format_doi(doi){
   /* Convert the doi to a key used in the storage */
@@ -23,22 +25,45 @@ export function get(doi){
   return storage[ format_doi(doi) ]
 }
 
-export function stored_doi_list(){
-  /* Return the list of doi */
-  let key_list = Object.keys( storage )
-  key_list = key_list.filter( x=>x.startsWith(PREFIX) )
-  return key_list.map( x=>x.replace(PREFIX, "") )
+export function getmany(doi_list: string[]){
+  /* async, return the metadata for the asked doi
+  *  perform the query for the missing metadata
+  *  update the storage
+  */
+
+  // Sort missing doi from the already obtain doi:
+  function findmissing( missingandpresent:{missing: string[]; present: object[]}, doi:string ){
+    const metadata = get(doi)
+    if(metadata){  missingandpresent.present.push(metadata)  }
+    else {  missingandpresent.missing.push(doi)  }
+    return missingandpresent
+  }
+  let { missing, present } = doi_list.reduce( findmissing, {missing:[], present:[]} )
+
+  function updatestorageandconcatenate(data){
+    data.forEach( metadata => storage[format_doi(metadata['DOI'])]=metadata )
+    return present.push( ...data )
+  }
+
+  // Return the concatenated Promise of data:
+  return query(missing)
+    .then( updatestorageandconcatenate )
+
 }
 
+
+//
+// Query
+//
 const MAILADRESS = 'bibigraph@mail.com'
 const USERAGENT = 'bibigraph project https://github.com/xdze2/bibigraph'
 const MAXQUERYSIZE = 16
 const url = 'http://api.crossref.org/works'
 
-export function query(doi_list: string[]){
+function query(doi_list: string[]){
   /*  Query the Crossref API for the given list of doi,
    *  and store the metadata in storage.
-   */
+  */
   console.log(' -- query: ', doi_list.length )
 
   // doi parsing & Regex validation:
@@ -56,13 +81,12 @@ export function query(doi_list: string[]){
   const n = doi_list.length
   let chunk_list = []
   for (let i=0; i<n; i+=MAXQUERYSIZE) {
-      let chunk = doi_list.slice(i, i+MAXQUERYSIZE);
-      chunk_list.push(chunk)
+    let chunk = doi_list.slice(i, i+MAXQUERYSIZE);
+    chunk_list.push(chunk)
   }
 
   // Query:
   const allquery = chunk_list.map( function(chunk){
-
     const concatenated_doi_list = chunk.map( s=>`doi:${s}` ).join(',')
     const querypromise = axios.get(url, {
       params: {

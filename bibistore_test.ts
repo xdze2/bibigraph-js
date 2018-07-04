@@ -43,4 +43,23 @@ const doi_list = ['10.1109/50.4133', '10.1103/physreva.38.1207', '10.1088/0143-0
         '10.1103/physrev.114.1219', '10.1103/physrev.97.1721', '10.1103/physreva.57.r1',
      '10.1103/physrevlett.62.2124', '10.1016/j.cap.2006.09.022']
 
-bibistore.query( doi_list ).then( x=>  console.log( x.length )).catch(err=>console.log(err))
+
+const shortdoilist =  ['10.1103/physreva.51.1015', '10.1143/jpsj.43.1262', '10.1109/tdei.2009.4784550',
+     '10.1038/30156', '10.1103/physrevlett.1.275', '10.1080/00107519608217543',
+     '10.1098/rspa.1998.0167', '10.4313/teem.2006.7.4.204', '10.1103/physrevlett.75.4714',
+      '10.1103/physrevb.24.4714', '10.1109/tpwrd.2007.899273', '10.1063/1.433534',
+       '10.1080/00018738900101122', '10.1109/tdei.2007.344607', '10.1103/physrev.73.679',
+       '10.1063/1.1721449', '10.1103/physrevlett.74.4091', '10.1103/physreva.52.r2493',
+        '10.1103/physrev.114.1219', '10.1103/physrev.97.1721', '10.1103/physreva.57.r1',
+     '10.1103/physrevlett.62.2124', '10.1016/j.cap.2006.09.022']
+
+/*
+bibistore.query( shortdoilist )
+  .then( data => console.log( data.length ))
+  .catch(err=>console.log(err))
+*/
+bibistore.getmany(shortdoilist)
+  .then( x=>console.log( x ) )
+
+bibistore.getmany(doi_list)
+  .then( x=>console.log( x ) )
