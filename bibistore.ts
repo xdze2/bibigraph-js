@@ -5,113 +5,123 @@
 
  */
 
-import axios from 'axios';
+import axios from "axios";
 
 //
 // Storage
 //
 
-let storage = {}
-const PREFIX = 'doi_' // the prefix is added to the key
+interface IStorageType {
+    [key: string]: object;
+}
 
-function format_doi(doi){
+const storage: IStorageType = {};
+
+const PREFIX = "doi_"; // the prefix is added to the key
+
+function format_doi(doi: string) {
   /* Convert the doi to a key used in the storage */
-  const key = doi.trim().toLowerCase()
-  return `${PREFIX}${key}`
+  const key = doi.trim().toLowerCase();
+  return `${PREFIX}${key}`;
 }
 
-export function get(doi){
+export function get(doi: string): object | undefined {
   /* Return the stored metadata or null */
-  return storage[ format_doi(doi) ]
+  return storage[format_doi(doi)];
 }
 
-export function getmany(doi_list: string[]){
+export function getmany(doiList: string[]) {
   /* async, return the metadata for the asked doi
   *  perform the query for the missing metadata
   *  update the storage
   */
 
   // Sort missing doi from the already obtain doi:
-  function findmissing( missingandpresent:{missing: string[]; present: object[]}, doi:string ){
-    const metadata = get(doi)
-    if(metadata){  missingandpresent.present.push(metadata)  }
-    else {  missingandpresent.missing.push(doi)  }
-    return missingandpresent
+  function findmissing(
+    missingandpresent: { missing: string[]; present: object[] },
+    doi: string,
+  ) {
+    const metadata = get(doi);
+    if (metadata) {
+      missingandpresent.present.push(metadata);
+    } else {
+      missingandpresent.missing.push(doi);
+    }
+    return missingandpresent;
   }
-  let { missing, present } = doi_list.reduce( findmissing, {missing:[], present:[]} )
+  const { missing, present } = doiList.reduce(findmissing, {
+    missing: [],
+    present: [],
+  });
 
-  function updatestorageandconcatenate(data){
-    data.forEach( metadata => storage[format_doi(metadata['DOI'])]=metadata )
-    return present.push( ...data )
+  function updatestorageandconcatenate(data: object[]) {
+    data.forEach( (metadata: object) => {storage[format_doi(metadata["DOI"])] = metadata} );
+    return present.push(...data);
   }
 
   // Return the concatenated Promise of data:
-  return query(missing)
-    .then( updatestorageandconcatenate )
-
+  return query(missing).then(updatestorageandconcatenate);
 }
-
 
 //
 // Query
 //
-const MAILADRESS = 'bibigraph@mail.com'
-const USERAGENT = 'bibigraph project https://github.com/xdze2/bibigraph'
-const MAXQUERYSIZE = 16
-const url = 'http://api.crossref.org/works'
+const MAILADRESS = "bibigraph@mail.com";
+const USERAGENT = "bibigraph project https://github.com/xdze2/bibigraph";
+const MAXQUERYSIZE = 16;
+const url = "http://api.crossref.org/works";
 
-function query(doi_list: string[]){
+function query(doiList: string[]) {
   /*  Query the Crossref API for the given list of doi,
    *  and store the metadata in storage.
   */
-  console.log(' -- query: ', doi_list.length )
+  console.log(" -- query: ", doiList.length);
 
   // doi parsing & Regex validation:
-  doi_list = doi_list.map( x=>x.trim() )
-  const doi_pattern = /^10.\d{4,9}\/[-._;()\/:A-Z0-9]+$/i;
+  doiList = doiList.map( (x) => x.trim());
+  const doiPattern = /^10.\d{4,9}\/[-._;()\/:A-Z0-9]+$/i;
 
-  const rejected_doi = doi_list.filter( doi => !doi_pattern.test(doi) )
-  if(rejected_doi.length){
-    console.log('pattern rejected doi:', rejected_doi)
+  const rejectedDoi = doiList.filter( (doi) => !doiPattern.test(doi));
+  if (rejectedDoi.length) {
+    console.log("pattern rejected doi:", rejectedDoi);
   }
 
-  doi_list = doi_list.filter( doi => doi_pattern.test(doi) )
+  doiList = doiList.filter( (doi) => doiPattern.test(doi));
 
   // Divide the doi list in chunk:
-  const n = doi_list.length
-  let chunk_list = []
-  for (let i=0; i<n; i+=MAXQUERYSIZE) {
-    let chunk = doi_list.slice(i, i+MAXQUERYSIZE);
-    chunk_list.push(chunk)
+  const n = doiList.length;
+  const chunkList = [];
+  for (let i = 0; i < n; i += MAXQUERYSIZE) {
+    const chunk = doiList.slice(i, i + MAXQUERYSIZE);
+    chunkList.push(chunk);
   }
 
   // Query:
-  const allquery = chunk_list.map( function(chunk){
-    const concatenated_doi_list = chunk.map( s=>`doi:${s}` ).join(',')
+  const allquery = chunkList.map( (chunk) => {
+    const concatenatedDoiList = chunk.map( (s) => `doi:${s}`).join(",");
     const querypromise = axios.get(url, {
+      headers: { "User-Agent": USERAGENT },
       params: {
+        filter: concatenatedDoiList,
         mailto: MAILADRESS,
-        filter: concatenated_doi_list,
-        rows: MAXQUERYSIZE
+        rows: MAXQUERYSIZE,
       },
-      headers: { 'User-Agent': USERAGENT },
-    })
-    return querypromise
-  })
+    });
+    return querypromise;
+  });
 
-  const mergedpromise = Promise.all(allquery).then(function(responsearray) {
-    let data = []
-    for (let response of responsearray){
-      if(response.status == 200){
-        const items =  response.data.message.items;
-        data.push( ...items )
-      }
-      else {
-          console.log('response error', response);
+  const mergedpromise = Promise.all(allquery).then( (responsearray) => {
+    const data = [];
+    for (const response of responsearray) {
+      if (response.status === 200) {
+        const items = response.data.message.items;
+        data.push(...items);
+      } else {
+        console.log("response error", response);
       }
     }
-    return data
-    })
+    return data;
+  });
 
-  return mergedpromise
+  return mergedpromise;
 }
