@@ -62,12 +62,12 @@ bibistore.query( shortdoilist )
   .catch(err=>console.log(err))
 */
 bibistore.getmany(shortdoilist)
-  .then( x=>console.log( 'query short', x ) )
+  .then( x=>console.log( 'query short', x.length ) )
   .then( x=> {
       bibistore.getmany(doi_list)
-        .then( x=>console.log( 'query long', x ) )
+        .then( u=>console.log( 'query long', u.length ) )
   })
 
 
-  bibistore.getmany([])
-    .then( x=>console.log( 'empty query', x ) )
+bibistore.getmany([])
+  .then( x=>console.log( 'empty query', x ) )

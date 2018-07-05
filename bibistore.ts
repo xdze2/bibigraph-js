@@ -10,9 +10,16 @@ import axios from "axios";
 //
 // Storage
 //
+//
+export interface IMetadata {
+  DOI: string;
+  reference?: {
+    DOI?: string;
+  }[];
+}
 
 interface IStorageType {
-    [key: string]: object;
+    [key: string]: IMetadata;
 }
 
 const storage: IStorageType = {};
@@ -25,7 +32,7 @@ function format_doi(doi: string) {
   return `${PREFIX}${key}`;
 }
 
-export function get(doi: string): object | undefined {
+export function get(doi: string): IMetadata | undefined {
   /* Return the stored metadata or null */
   return storage[format_doi(doi)];
 }
@@ -40,7 +47,7 @@ export function getmany(doiList: string[]) {
 
   // Sort missing doi from the already obtain doi:
   function findmissing(
-    missingandpresent: { missing: string[]; present: object[] },
+    missingandpresent: { missing: string[]; present: IMetadata[]; },
     doi: string,
   ) {
     const metadata = get(doi);
@@ -56,8 +63,8 @@ export function getmany(doiList: string[]) {
     present: [],
   });
 
-  function updatestorageandconcatenate(data: object[]) {
-    data.forEach( (metadata: object) => {storage[format_doi(metadata["DOI"])] = metadata} );
+  function updatestorageandconcatenate(data: IMetadata[]) {
+    data.forEach( (metadata) => {storage[format_doi(metadata["DOI"])] = metadata} );
     present.push(...data)
     return data;
   }
@@ -88,7 +95,7 @@ function query(doiList: string[]) {
     console.log("pattern rejected doi:", rejectedDoi);
   }
 
-  doiList = doiList.filter( (doi) => doiPattern.test(doi));
+  doiList = doiList.filter( (doi) => doiPattern.test(doi) );
 
   if( doiList.length==0 ){
       return Promise.resolve( [] )
@@ -104,7 +111,7 @@ function query(doiList: string[]) {
 
   // Query:
   const allquery = chunkList.map( (chunk) => {
-    console.log("-doi requested:", doiList.length);
+    console.log(`\u{1F4E1}  ${chunk.length} doi requested`);
     const concatenatedDoiList = chunk.map( (s) => `doi:${s}`).join(",");
     const querypromise = axios.get(url, {
       headers: { "User-Agent": USERAGENT },
@@ -118,10 +125,10 @@ function query(doiList: string[]) {
   });
 
   const mergedpromise = Promise.all(allquery).then( (responsearray) => {
-    const data = [];
+    const data: IMetadata[] = [];
     for (const response of responsearray) {
       if (response.status === 200) {
-        const items = response.data.message.items;
+        const items = <IMetadata[]>response.data.message.items;
         data.push(...items);
       } else {
         console.log("response error", response);

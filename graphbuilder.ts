@@ -12,15 +12,21 @@ Steps:
 3. select some nodes (max cited)
 4. grow a new graph upward from the selected nodes
 
-
-
  */
 
 import * as bibistore from "./bibistore";
 
+interface IGraph {
+  [key: string]: {
+    gen: number;
+    citedby: string[];
+  };
+}
+
+
 export function init_graph(doi_list: string[]) {
   /* Create a graph starting at gen0 */
-  const graph = {};
+  const graph: IGraph = {};
   doi_list.forEach( (doi) => {
     doi = doi.toLowerCase().trim();
     graph[doi] = { gen: 0, citedby: [] };
@@ -28,16 +34,16 @@ export function init_graph(doi_list: string[]) {
   return graph;
 }
 
-function lastGen(graph) {
+function lastGen(graph: IGraph) {
   /* Return the number of the last generation in the graph */
-  function findMax(currentMax, key) {
+  function findMax(currentMax: number, key: string) {
     return Math.max(currentMax, graph[key].gen);
   }
   const keys = Object.keys(graph);
   return keys.reduce(findMax, 0);
 }
 
-export function growOneGen(graph) {
+export function growOneGen(graph: IGraph) {
   /* Fetch the references for the last-generation nodes
      and expand the graph one generation
   */
@@ -51,21 +57,23 @@ export function growOneGen(graph) {
 
   // Look for the refs:
   const graphPromise = bibistore.getmany( lastgenDoi ).then( (data) => {
-      data.forEach( (metadata) => {
+      data.forEach( (metadata: bibistore.IMetadata) => {
           const doi = metadata['DOI'].toLowerCase();
-          if ( 'reference' in metadata ) {
-            metadata['reference'].forEach( (info) => {
+          const referenceList = metadata['reference'];
+          if ( referenceList ) {
+            referenceList.forEach( (info) => {
               // Add node to the graph:
-              if (info["DOI"]) {
-                const refdoi = info["DOI"].trim().toLowerCase();
+              let refdoi = info["DOI"]
+              if (refdoi) {
+                refdoi = refdoi.trim().toLowerCase();
                 if (graph[refdoi]) {
                   graph[refdoi].citedby.push(doi);
                 } else {
                   graph[refdoi] = { gen: graphLastgen + 1, citedby: [doi] };
                 }
-              }
+              } // else: no DOI provided...
             });
-        } else { console.log(`no ref provided for ${doi}`); }
+        } else { console.log(`\u{1F641}  no ref provided for ${doi}`); }
       });
       return graph;
   });
@@ -98,27 +106,26 @@ export function growOneGen(graph) {
 });*/
 
 
-export function selectMinimumCited(graph, minimumcited: number) {
+export function selectMinimumCited(graph: IGraph, minimumcited: number) {
   const keys = Object.keys(graph);
   return keys.filter( (key) => graph[key].citedby.length >= minimumcited );
 }
 
-export function upwardGraph(graph, selectednodes: string[]) {
+export function upwardGraph(graph: IGraph, selectednodes: string[]) {
   /* Build the upward graph from the selected nodes
   */
-  let nodes = [];
-  let links = [];
+  let nodes: string[] = [];
+  let links: [string, string][] = [];
 
-  let nodes_to_check = selectednodes;
+  let nodesToCheck = selectednodes;
 
-  while (nodes_to_check.length) {
-    const doi = nodes_to_check.pop();
+  let doi: string;
+  while (doi = nodesToCheck.pop()!) {  // see https://github.com/Microsoft/TypeScript/issues/18718 for the !
     nodes.push(doi);
-
-    graph[doi].citedby.forEach(function(citingdoi) {
+    graph[doi].citedby.forEach( (citingdoi: string) => {
       links.push([doi, citingdoi]);
-      if (!nodes_to_check.includes(citingdoi) && !nodes.includes(citingdoi)) {
-        nodes_to_check.push(citingdoi);
+      if (!nodesToCheck.includes(citingdoi) && !nodes.includes(citingdoi)) {
+        nodesToCheck.push(citingdoi);
       }
     });
   }
