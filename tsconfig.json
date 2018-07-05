@@ -1,13 +1,14 @@
 {
     "compilerOptions": {
         "module": "commonjs",
-        "target": "es6",
+        "target": "es2017",
         "outDir": "out",
         "noLib": false,
         "sourceMap": true,
         "allowJs": true,
         "rootDir": ".",
-        "lib": ["dom","es7"],
+        "lib": ["dom","es7","dom.iterable"],
+        "strict": true,
     },
     "exclude": [
         "node_modules",
