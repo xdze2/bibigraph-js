@@ -56,7 +56,8 @@ export function getmany(doiList: string[]) {
 
   function updatestorageandconcatenate(data: object[]) {
     data.forEach( (metadata: object) => {storage[format_doi(metadata["DOI"])] = metadata} );
-    return present.push(...data);
+    present.push(...data)
+    return data;
   }
 
   // Return the concatenated Promise of data:
@@ -88,9 +89,8 @@ function query(doiList: string[]) {
 
   doiList = doiList.filter( (doi) => doiPattern.test(doi));
 
-  // TODO: with empty chunk to...
   if( doiList.length==0 ){
-      return Promise.resolve([])
+      return Promise.resolve( [] )
   }
 
   // Divide the doi list in chunk:
@@ -98,7 +98,7 @@ function query(doiList: string[]) {
   const chunkList = [];
   for (let i = 0; i < n; i += MAXQUERYSIZE) {
     const chunk = doiList.slice(i, i + MAXQUERYSIZE);
-    chunkList.push(chunk);
+    if(chunk.length>0) { chunkList.push(chunk) };
   }
 
   // Query:
@@ -120,6 +120,7 @@ function query(doiList: string[]) {
     for (const response of responsearray) {
       if (response.status === 200) {
         const items = response.data.message.items;
+        console.log(' add chunk ', items.length )
         data.push(...items);
       } else {
         console.log("response error", response);
