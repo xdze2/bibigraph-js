@@ -67,3 +67,7 @@ bibistore.getmany(shortdoilist)
       bibistore.getmany(doi_list)
         .then( x=>console.log( 'query long', x ) )
   })
+
+
+  bibistore.getmany([])
+    .then( x=>console.log( 'empty query', x ) )

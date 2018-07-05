@@ -88,6 +88,11 @@ function query(doiList: string[]) {
 
   doiList = doiList.filter( (doi) => doiPattern.test(doi));
 
+  // TODO: with empty chunk to...
+  if( doiList.length==0 ){
+      return Promise.resolve([])
+  }
+
   // Divide the doi list in chunk:
   const n = doiList.length;
   const chunkList = [];
