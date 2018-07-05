@@ -34,6 +34,8 @@ export function getmany(doiList: string[]) {
   /* async, return the metadata for the asked doi
   *  perform the query for the missing metadata
   *  update the storage
+  *
+  *  Return an Array of metadata object
   */
 
   // Sort missing doi from the already obtain doi:
@@ -76,7 +78,6 @@ function query(doiList: string[]) {
   /*  Query the Crossref API for the given list of doi,
    *  and store the metadata in storage.
   */
-  console.log(" -- query: ", doiList.length);
 
   // doi parsing & Regex validation:
   doiList = doiList.map( (x) => x.trim());
@@ -103,6 +104,7 @@ function query(doiList: string[]) {
 
   // Query:
   const allquery = chunkList.map( (chunk) => {
+    console.log("-doi requested:", doiList.length);
     const concatenatedDoiList = chunk.map( (s) => `doi:${s}`).join(",");
     const querypromise = axios.get(url, {
       headers: { "User-Agent": USERAGENT },
@@ -120,7 +122,6 @@ function query(doiList: string[]) {
     for (const response of responsearray) {
       if (response.status === 200) {
         const items = response.data.message.items;
-        console.log(' add chunk ', items.length )
         data.push(...items);
       } else {
         console.log("response error", response);

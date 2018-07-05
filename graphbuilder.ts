@@ -49,12 +49,29 @@ export function growOneGen(graph) {
   const lastgenDoi = keys.filter( (key) => graph[key].gen == graphLastgen);
   console.log("#lastgen doi:", lastgenDoi.length);
 
+  // Look for the refs:
+  const graphPromise = bibistore.getmany( lastgenDoi ).then( (data) => {
+      data.forEach( (metadata) => {
+          const doi = metadata['DOI'].toLowerCase();
+          if ( 'reference' in metadata ) {
+            metadata['reference'].forEach( (info) => {
+              // Add node to the graph:
+              if (info["DOI"]) {
+                const refdoi = info["DOI"].trim().toLowerCase();
+                if (graph[refdoi]) {
+                  graph[refdoi].citedby.push(doi);
+                } else {
+                  graph[refdoi] = { gen: graphLastgen + 1, citedby: [doi] };
+                }
+              }
+            });
+        } else { console.log(`no ref provided for ${doi}`); }
+      });
+      return graph;
+  });
 
-
-
-  bibistore.getmany( lastgenDoi ).then( (data) => {
-      console.log("metadata: ", data.length);
-})
+  return graphPromise;
+}
 
  /* // Perform the query for the unknown references and expand the graph:
   return bibistore.query(missing).then(function() {
@@ -79,14 +96,16 @@ export function growOneGen(graph) {
     }
     return graph;
 });*/
-}
 
-export function select_minimumcited(graph, minimumcited: number) {
+
+export function selectMinimumCited(graph, minimumcited: number) {
   const keys = Object.keys(graph);
-  return keys.filter(key => graph[key].citedby.length >= minimumcited);
+  return keys.filter( (key) => graph[key].citedby.length >= minimumcited );
 }
 
-export function upward_graph(graph, selectednodes) {
+export function upwardGraph(graph, selectednodes: string[]) {
+  /* Build the upward graph from the selected nodes
+  */
   let nodes = [];
   let links = [];
 

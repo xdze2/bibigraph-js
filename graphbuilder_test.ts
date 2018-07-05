@@ -11,10 +11,15 @@
 import * as graphbuilder from './graphbuilder'
 
 
-let doi_list = ['10.1103/PhysRevA.62.012306']
-let graph = graphbuilder.init_graph( doi_list )
+const shortdoilist =  ['10.1103/physreva.51.1015', '10.1143/jpsj.43.1262', '10.1109/tdei.2009.4784550',
+'10.1038/30156', '10.1103/physrevlett.1.275', '10.1080/00107519608217543']
 
-graphbuilder.growOneGen( graph )
+let graph = graphbuilder.init_graph( shortdoilist )
+
+graphbuilder.growOneGen( graph ).then( (graph) => {
+    const nodes = graphbuilder.selectMinimumCited(graph, 2)
+    console.log('upward graph:', graphbuilder.upwardGraph( graph, nodes ) )
+})
 /*  .then( graph=>graphbuilder.growOneGen( graph ) )
   .then( function(graph){
     let nodes = graphbuilder.select_minimumcited(graph, 4)
