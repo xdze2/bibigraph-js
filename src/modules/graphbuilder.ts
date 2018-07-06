@@ -26,6 +26,7 @@ interface IGraph {
 
 export function init_graph(doi_list: string[]) {
   /* Create a graph starting at gen0 */
+  console.log(`\u{1F3D7} Start a new graph with ${doi_list.length} node(s)`);
   const graph: IGraph = {};
   doi_list.forEach( (doi) => {
     doi = doi.toLowerCase().trim();
@@ -53,7 +54,8 @@ export function growOneGen(graph: IGraph) {
 
   const keys = Object.keys(graph);
   const lastgenDoi = keys.filter( (key) => graph[key].gen == graphLastgen);
-  console.log("#lastgen doi:", lastgenDoi.length);
+
+  console.log(`\u{1F6B2} Expand generation #${graphLastgen}, ${lastgenDoi.length} sub-nodes.`);
 
   // Look for the refs:
   const graphPromise = bibistore.getmany( lastgenDoi ).then( (data) => {
