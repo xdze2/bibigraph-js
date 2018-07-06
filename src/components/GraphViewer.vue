@@ -43,10 +43,12 @@ export default Vue.extend({
     const svg = d3.select('svg');
     const svgGroup = svg.append('g');
 
+    const gr = d3.select('svg>g')
+    gr.length = 1 // hack
     // Run the renderer. This is what draws the final graph.
-    render(svgGroup, g);
+    render(gr, g);
     // Center the graph
-    var xCenterOffset = (svg.attr('width') - g.graph().width) / 2;
+    var xCenterOffset = (Number(svg.attr('width')) - g.graph().width) / 2;
     svgGroup.attr('transform', 'translate(' + xCenterOffset + ', 20)');
     svg.attr('height', g.graph().height + 40);
 
@@ -57,8 +59,9 @@ export default Vue.extend({
     svg.call(zoom);
 
     // Center the graph
-    var initialScale = 0.75;
-    svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2, 20).scale(initialScale));
+    const initialScale = 0.75;
+    let w = Number(svg.attr("width"));
+    svg.call(zoom.transform, d3.zoomIdentity.translate((w - g.graph().width * initialScale) / 2, 20).scale(initialScale));
 
     svg.attr('height', g.graph().height * initialScale + 40);
 
