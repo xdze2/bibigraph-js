@@ -5,11 +5,26 @@
 
  */
 
-import axios from 'axios';
+import axios from "axios";
 
+//
+// Storage
+//
+//
+export interface IMetadata {
+  DOI: string;
+  reference?: {
+    DOI?: string;
+  }[];
+}
 
-const storage = {};
-const PREFIX = 'doi_';
+interface IStorageType {
+    [key: string]: IMetadata;
+}
+
+const storage: IStorageType = {};
+
+const PREFIX = "doi_"; // the prefix is added to the key
 
 function format_doi(doi: string) {
   /* Convert the doi to a key used in the storage */
@@ -17,70 +32,110 @@ function format_doi(doi: string) {
   return `${PREFIX}${key}`;
 }
 
-export function get(doi: string) {
+export function get(doi: string): IMetadata | undefined {
   /* Return the stored metadata or null */
-  return storage[ format_doi(doi) ];
+  return storage[format_doi(doi)];
 }
 
-export function stored_doi_list() {
-  /* Return the list of doi */
-  let key_list = Object.keys( storage );
-  key_list = key_list.filter( (x) => x.startsWith(PREFIX) );
-  return key_list.map( (x) => x.replace(PREFIX, '') );
-}
+export function getmany(doiList: string[]) {
+  /* async, return the metadata for the asked doi
+  *  perform the query for the missing metadata
+  *  update the storage
+  *
+  *  Return an Array of metadata object
+  */
 
+  // Sort missing doi from the already obtain doi:
+  function findmissing(
+    missingandpresent: { missing: string[]; present: IMetadata[]; },
+    doi: string,
+  ) {
+    const metadata = get(doi);
+    if (metadata) {
+      missingandpresent.present.push(metadata);
+    } else {
+      missingandpresent.missing.push(doi);
+    }
+    return missingandpresent;
+  }
+  const { missing, present } = doiList.reduce(findmissing, {
+    missing: [],
+    present: [],
+  });
 
-
-
-export function query(doi_list: string[]) {
-  /* Query the Crossref API for the given list of doi,
-    and store the metadata in storage.
-   */
-  console.log(' -- query: ', doi_list.length );
-  const MAILADRESS = 'bibigraph@mail.com';
-  const USERAGENT = 'bibigraph project https://github.com/xdze2/bibigraph';
-
-
-  doi_list = doi_list.map( (x) => x.trim() );
-
-  // Regex validation:
-  const doi_pattern = /^10.\d{4,9}\/[-._;()\/:A-Z0-9]+$/i;
-
-  const rejected_doi = doi_list.filter( (doi) => !doi_pattern.test(doi) );
-  if (rejected_doi.length) {
-    console.log('pattern rejected doi:', rejected_doi);
+  function updatestorageandconcatenate(data: IMetadata[]) {
+    data.forEach( (metadata) => {storage[format_doi(metadata["DOI"])] = metadata} );
+    present.push(...data)
+    return data;
   }
 
-  doi_list = doi_list.filter( (doi) => doi_pattern.test(doi) );
+  // Return the concatenated Promise of data:
+  return query(missing).then(updatestorageandconcatenate);
+}
+
+//
+// Query
+//
+const MAILADRESS = "bibigraph@mail.com";
+const USERAGENT = "bibigraph project https://github.com/xdze2/bibigraph";
+const MAXQUERYSIZE = 16;
+const url = "http://api.crossref.org/works";
+
+function query(doiList: string[]) {
+  /*  Query the Crossref API for the given list of doi,
+   *  and store the metadata in storage.
+  */
+
+  // doi parsing & Regex validation:
+  doiList = doiList.map( (x) => x.trim());
+  const doiPattern = /^10.\d{4,9}\/[-._;()\/:A-Z0-9]+$/i;
+
+  const rejectedDoi = doiList.filter( (doi) => !doiPattern.test(doi));
+  if (rejectedDoi.length) {
+    console.log("pattern rejected doi:", rejectedDoi);
+  }
+
+  doiList = doiList.filter( (doi) => doiPattern.test(doi) );
+
+  if( doiList.length==0 ){
+      return Promise.resolve( [] )
+  }
+
+  // Divide the doi list in chunk:
+  const n = doiList.length;
+  const chunkList = [];
+  for (let i = 0; i < n; i += MAXQUERYSIZE) {
+    const chunk = doiList.slice(i, i + MAXQUERYSIZE);
+    if(chunk.length>0) { chunkList.push(chunk) };
+  }
 
   // Query:
-  const concatenated_doi_list = doi_list.map( (s) => `doi:${s}` ).join(',');
-
-  const url = 'https://api.crossref.org/works';
-
-  return axios.get(url, {
+  const allquery = chunkList.map( (chunk) => {
+    console.log(`\u{1F4E1}  ${chunk.length} doi requested`);
+    const concatenatedDoiList = chunk.map( (s) => `doi:${s}`).join(",");
+    const querypromise = axios.get(url, {
+      headers: { "User-Agent": USERAGENT },
       params: {
+        filter: concatenatedDoiList,
         mailto: MAILADRESS,
-        filter: concatenated_doi_list,
-        rows: 80,
+        rows: MAXQUERYSIZE,
       },
-      // withCredentials: true,
-      // headers: { 'User-Agent': USERAGENT   },
-    })
-    .then(function(response) {
-      if (response.status == 200) {
-
-          const items =  response.data.message.items;
-          console.log('response ', items.length);
-          for (const metadata of items) {
-            const doi = format_doi( metadata.DOI );
-            storage[doi] =  metadata; // not tracked by VueJS
-          }
-
-      } else {
-          console.log('response error', response);
-      }
-
     });
+    return querypromise;
+  });
 
+  const mergedpromise = Promise.all(allquery).then( (responsearray) => {
+    const data: IMetadata[] = [];
+    for (const response of responsearray) {
+      if (response.status === 200) {
+        const items = <IMetadata[]>response.data.message.items;
+        data.push(...items);
+      } else {
+        console.log("response error", response);
+      }
+    }
+    return data;
+  });
+
+  return mergedpromise;
 }
