@@ -21,7 +21,9 @@
   busy - look at the console...
 </div>
 
-<p>{{graph}}</p>
+<p v-if="graph">there is a graph</p>
+
+<graphviewer v-if="graph" v-bind:graph="graph" />
 
 </div>
 </template>
@@ -29,6 +31,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as graphbuilder from '../modules/graphbuilder';
+import graphviewer from '@/components/GraphViewer.vue';
 
 export default Vue.extend({
   name: 'requestform',
@@ -46,7 +49,7 @@ export default Vue.extend({
       this.graph = undefined;
 
       const doilist = doitext.split(/[,;\s]/).filter( (x) => x );
-      
+
       console.log('selected nodes: ', doilist);
 
       const graph = graphbuilder.init_graph( doilist );
@@ -54,8 +57,7 @@ export default Vue.extend({
       graphbuilder.growOneGen( graph )
         .then( (graph) => graphbuilder.growOneGen( graph ) )
         .then( (graph) => {
-          const nodes = graphbuilder.selectMinimumCited(graph, 2);
-          console.log('nodes selected: ', nodes);
+          const nodes = graphbuilder.selectMinimumCited(graph, 5);
           const nodelinks = graphbuilder.upwardGraph( graph, nodes );
           console.log('upward graph: ', nodelinks );
           this.graph = nodelinks;
@@ -66,6 +68,9 @@ export default Vue.extend({
 
     },
   },
+  components: {
+    graphviewer,
+  }
 });
 </script>
 

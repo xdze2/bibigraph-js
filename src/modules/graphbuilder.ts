@@ -110,12 +110,17 @@ export function growOneGen(graph: IGraph) {
 
 export function selectMinimumCited(graph: IGraph, minimumcited: number) {
   const keys = Object.keys(graph);
-  return keys.filter( (key) => graph[key].citedby.length >= minimumcited );
+  const remainingNodes = keys.filter( (key) => graph[key].citedby.length >= minimumcited );
+  console.log(`\u{1F989}  Keep nodes with a minimum of ${minimumcited} citations: ${remainingNodes.length} nodes remaining`);
+  return remainingNodes;
 }
 
 export function upwardGraph(graph: IGraph, selectednodes: string[]) {
   /* Build the upward graph from the selected nodes
   */
+
+  console.log(`\u{1F680} building the upward graph`);
+
   let nodes: string[] = [];
   let links: [string, string][] = [];
 
