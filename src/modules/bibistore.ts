@@ -76,10 +76,10 @@ export function getmany(doiList: string[]) {
 //
 // Query
 //
-const MAILADRESS = "bibigraph@mail.com";
-const USERAGENT = "bibigraph project https://github.com/xdze2/bibigraph";
+const MAILADRESS = "https://github.com/xdze2";
+const USERAGENT = "bibigraph app https://github.com/xdze2/bibigraph";
 const MAXQUERYSIZE = 16;
-const url = "http://api.crossref.org/works";
+const url = "https://api.crossref.org/works";
 
 function query(doiList: string[]) {
   /*  Query the Crossref API for the given list of doi,
@@ -114,7 +114,6 @@ function query(doiList: string[]) {
     console.log(`\u{1F4E1}  ${chunk.length} doi requested`);
     const concatenatedDoiList = chunk.map( (s) => `doi:${s}`).join(",");
     const querypromise = axios.get(url, {
-      headers: { "User-Agent": USERAGENT },
       params: {
         filter: concatenatedDoiList,
         mailto: MAILADRESS,
