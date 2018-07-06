@@ -66,7 +66,7 @@ export function getmany(doiList: string[]) {
   function updatestorageandconcatenate(data: IMetadata[]) {
     data.forEach( (metadata) => {storage[format_doi(metadata["DOI"])] = metadata} );
     present.push(...data)
-    return data;
+    return present;
   }
 
   // Return the concatenated Promise of data:
