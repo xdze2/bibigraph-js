@@ -1,15 +1,10 @@
 
 import * as bibistore from  './bibistore';
-<<<<<<< HEAD:src/modules/bibistore_test.ts
-// import { expect } from 'chai';
-// import 'mocha';
-=======
 
 
 
 //import { expect } from 'chai';
 //import 'mocha';
->>>>>>> graphBuilder:bibistore_test.ts
 
 /*describe('Hello function', () => {
 
@@ -22,12 +17,6 @@ import * as bibistore from  './bibistore';
 
 
 
-<<<<<<< HEAD:src/modules/bibistore_test.ts
-const doi_list = ['10.1109/TDEI.2009.5211869', '10.1109/TPAS.1981.316530'];
-
-bibistore.query( doi_list ).then( (x) =>  console.log( bibistore.stored_doi_list() ),
-);
-=======
 //const doi_list = ['10.1109/TDEI.2009.5211869', '10.1109/TPAS.1981.316530']
 
 
@@ -82,4 +71,3 @@ bibistore.getmany(shortdoilist)
 
 bibistore.getmany([])
   .then( x=>console.log( 'empty query', x ) )
->>>>>>> graphBuilder:bibistore_test.ts
