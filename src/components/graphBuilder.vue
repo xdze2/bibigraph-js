@@ -58,10 +58,6 @@ export default Vue.extend({
 
 <style scoped>
 
-textarea {
-  width: 60%;
-  height: 10em;
-}
 .messageboard {
   width: 60em;
   height:10em;
@@ -75,5 +71,9 @@ textarea {
   margin: 0;
   padding: 0;
 }
-
+.graphBuilder{
+  padding: 5px;
+  margin-left: 2em;
+  margin-top: 1em;
+}
 </style>

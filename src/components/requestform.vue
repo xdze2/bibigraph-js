@@ -1,12 +1,12 @@
 <template>
 <div class="requestform" >
-<h2>start a graph</h2>
 
-  Request a new graph by specifying the doi to start from:
+  <p>
+  Request a new graph by specifying the doi to start from:<br />
   <textarea v-model="doitext" placeholder="give a doi list, comma or space separated"></textarea>
   <button v-on:click="submit(doitext)">go</button>
-
-  <p class='parseddoilist'>
+  </p>
+  <p class='parseddoilist' v-if="doitext">
   Parsed list: <span v-for="doi in doilist">[{{ doi }}]  </span>
   </p>
 
@@ -51,12 +51,20 @@ export default Vue.extend({
 <style scoped>
 
 textarea {
-  width: 60%;
-  height: 10em;
+  width: 50em;
+  height: 9em;
+  padding: 5px;
+  margin:4px;
+  font-size: 110%;
+  /* box-shadow: inset 1px 2px 3px #ddd; */
 }
+
 
 .parseddoilist{
   color: #777;
-
+}
+.requestform {
+  padding: 5px;
+  padding-left: 2em;
 }
 </style>

@@ -134,7 +134,23 @@ function query(doiList: string[]) {
       }
     }
     return data;
-  });
+  })//.catch( (error) => console.log(error) );
 
   return mergedpromise;
+}
+
+
+
+export function getkey(doi: string){
+  /* Return  the bibliographic key: AuthorYEAR
+   */
+  const metadata = get(doi)
+  if(metadata){
+
+
+  }
+  else{
+    return doi
+  }
+
 }
