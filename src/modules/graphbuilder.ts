@@ -63,20 +63,17 @@ export function growOneGen(graph: IGraph) {
   // Look for the refs:
   const graphPromise = bibistore.getmany( lastgenDoi ).then( (data) => {
       data.forEach( (metadata: bibistore.IMetadata) => {
-          const doi = metadata['DOI'].toLowerCase();
-          const referenceList = metadata['reference'];
+          const doi = metadata.doi.toLowerCase();
+          const referenceList = metadata.referenceWithDOI;
           if ( referenceList ) {
-            referenceList.forEach( (info) => {
+            referenceList.forEach( (refdoi) => {
               // Add node to the graph:
-              let refdoi = info["DOI"]
-              if (refdoi) {
                 refdoi = refdoi.trim().toLowerCase();
                 if (graph[refdoi]) {
                   graph[refdoi].citedby.push(doi);
                 } else {
                   graph[refdoi] = { gen: graphLastgen + 1, citedby: [doi] };
                 }
-              } // else: no DOI provided...
             });
         } else { console.log(`\u{1F641}  no ref provided for ${doi}`); }
       });
@@ -129,11 +126,3 @@ export function upwardGraph(graph: IGraph, selectednodes: string[]) {
 
   return { nodes: nodes, links: links };
 }
-// Test:
-/*
-let doi_list = ['10.1103/PhysRevA.62.012306']
-
-let graph = init_graph( doi_list )
-console.log('graph init: ', graph)
-console.log( "id lastgen: ", lastGen(graph) )
-*/

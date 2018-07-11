@@ -12,11 +12,60 @@ import axios from "axios";
 //
 //
 export interface IMetadata {
-  DOI: string;
+  doi: string;
   reference?: {
     DOI?: string;
   }[];
 }
+
+// apiformat: https://github.com/CrossRef/rest-api-doc/blob/master/api_format.md
+class Metadata {
+  doi: string;
+  title: string;
+  year: number;
+  journal: string;
+  reference: string[];
+  referenceWithDOI: string[];
+  citedbycount: number;
+  referencescount: number;
+  url: string;
+  data: {};
+  key: string;
+  authors: string[];
+
+  constructor(metadata) {
+    /* Take the metadata from Crossref */
+    this.data = metadata;
+    this.title = (metadata["title"] || [''])[0];
+    this.year = metadata["issued"]["date-parts"][0][0];
+    this.citedbycount = metadata["is-referenced-by-count"];
+    this.referencescount = metadata["references-count"];
+    this.url = metadata["URL"];
+    this.doi = metadata["DOI"];
+    this.journal = metadata["container-title"][0] || "";
+
+    if (metadata["reference"]) {
+      this.referenceWithDOI = metadata["reference"]
+        .filter(ref => ref["DOI"])
+        .map(ref => ref["DOI"]);
+      this.reference = metadata["reference"];
+    } else {
+      this.reference = [];
+      this.referenceWithDOI = [];
+    }
+
+    if (metadata["author"]) {
+      this.authors = metadata["author"].map(
+        auth => `${auth["given"]||''} ${auth["family"]}`
+      );
+      this.key = `${metadata["author"][0]["family"]}${this.year}`;
+    } else {
+      this.authors = [];
+      this.key = this.doi;
+    }
+  }
+}
+
 
 interface IStorageType {
     [key: string]: IMetadata;
@@ -64,7 +113,7 @@ export function getmany(doiList: string[]) {
   });
 
   function updatestorageandconcatenate(data: IMetadata[]) {
-    data.forEach( (metadata) => {storage[format_doi(metadata["DOI"])] = metadata} );
+    data.forEach( (metadata) => {storage[format_doi(metadata.doi)] = metadata} );
     present.push(...data)
     return present;
   }
@@ -133,24 +182,8 @@ function query(doiList: string[]) {
         console.log("response error", response);
       }
     }
-    return data;
+    return data.map( (item) => new Metadata(item) );
   })//.catch( (error) => console.log(error) );
 
   return mergedpromise;
-}
-
-
-
-export function getkey(doi: string){
-  /* Return  the bibliographic key: AuthorYEAR
-   */
-  const metadata = get(doi)
-  if(metadata){
-
-
-  }
-  else{
-    return doi
-  }
-
 }

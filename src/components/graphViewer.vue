@@ -16,6 +16,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import metadataviewer from './metadataViewer'
+import * as bibistore from '../modules/bibistore';
 import * as d3 from 'd3';
 import dagreD3 from 'dagre-d3';
 import { EventBus } from '../main';
@@ -49,10 +50,15 @@ export default Vue.extend({
       });
 
       graph.nodes.forEach((doi)=>{
+        const metadata = bibistore.get(doi)
+        let styles = [];
+        if( metadata.referenceWithDOI.length == 0 ){
+          styles.push('norefprovided')
+        }
         g.setNode(doi, {
-          label: doi,
+          label: metadata.key,
           id: 'doi'+doi.replace(/[\./]/g, ''),
-          class: 'hello',
+          class:styles.join(' ')
         });
       })
 
@@ -160,5 +166,9 @@ svg {
   color: "#F66";
 }
 
+.norefprovided rect { //svg
+  fill:rgb(0,0,255);
+  stroke-width:3;
+}
 
 </style>

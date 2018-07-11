@@ -4,8 +4,17 @@
 
 
     <div v-if="metadata">
-      {{metadata.DOI}}
-      <h3>{{metadata.title[0]}}</h3>
+      {{metadata.doi}} - {{metadata.key}}
+      <h3>{{metadata.title}}</h3>
+      <p>
+      <span v-for="auth of metadata.authors">{{auth}}, </span>
+      </p>
+    ({{metadata.year}}) {{metadata.journal}} <a v-bind:href="metadata.url">link</a>
+
+    <p>
+      <b>{{metadata.citedbycount}}</b> citations <br />
+      {{metadata.referencescount}} references ({{metadata.referenceWithDOI.length}} with a doi) <br />
+    </p>
 
     <ul v-if="metadata.reference">
     </ul>
@@ -25,7 +34,7 @@ import * as store from '../modules/bibistore';
 import { EventBus } from '../main';
 
 export default Vue.extend({
-  name: 'metadataviewer',
+  name: 'metadataViewer',
   props: ['doi'],
   data(){return {
     //metadata: undefined,
