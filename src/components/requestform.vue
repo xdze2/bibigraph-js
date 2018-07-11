@@ -4,6 +4,15 @@
   <p>
   Request a new graph by specifying the doi to start from:<br />
   <textarea v-model="doitext" placeholder="give a doi list, comma or space separated"></textarea>
+  <br />
+  Explore
+  <select v-model="ngen">
+    <option disabled>1</option>
+    <option selected>2</option>
+    <option disabled>3</option>
+  </select> level(s) of references and then build the upward citation graph from the
+  <input v-model.number="ntop" type="number"> most cited articles.
+
   <button v-on:click="submit(doitext)">go</button>
   </p>
   <p class='parseddoilist' v-if="doitext">
@@ -15,7 +24,6 @@
     <a href='#' v-on:click="doitext='10.1103/PhysRevA.62.012306, PhysRevA.62.012306Cc1R1'">set example 2</a>,
     <a href='#' v-on:click="doitext='10.1103/physreva.51.1015, 10.1143/jpsj.43.1262,10.1109/tdei.2009.4784550,10.1038/30156,10.1103/physrevlett.1.275, 10.1080/00107519608217543'">example 3</a>
   </p>
-
 
 
 </div>
@@ -32,6 +40,8 @@ export default Vue.extend({
   name: 'requestform',
   data: () => { return {
       doitext: '',
+      ngen: 2,
+      ntop: 5,
   }; },
   computed: {
     doilist (){ return this.doitext.split(/[,;\s]/).filter( (x) => x ) },
@@ -39,7 +49,11 @@ export default Vue.extend({
   methods: {
     submit(doitext: string) {
       const doilist = doitext.split(/[,;\s]/).filter( (x) => x );
-      EventBus.$emit('newgraphrequest', doilist);
+      const graphspec = {
+        doilist:doilist,
+        ntop:this.ntop
+      }
+      EventBus.$emit('newgraphrequest', graphspec);
     },
   },
   components: {

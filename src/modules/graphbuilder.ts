@@ -1,9 +1,10 @@
 /*
--- Graph Builder --
+Graph Builder
+=============
 
 - input: list of doi, number of generation to grow, and a selection rule
 - output:
-  - a graph i.e. Object like doi:[references]
+  - a graph i.e. Object like {doi:[references], ... }
   - svg graph, metadata
 
 Steps:
@@ -22,7 +23,6 @@ interface IGraph {
     citedby: string[];
   };
 }
-
 
 export function init_graph(doi_list: string[]) {
   /* Create a graph starting at gen0 */
@@ -46,9 +46,12 @@ function lastGen(graph: IGraph) {
 
 export function growOneGen(graph: IGraph) {
   /* Fetch the references for the last-generation nodes
-     and expand the graph one generation
+  *  and expand the graph one generation
   */
-
+  // if{!logfunction}{
+  //   console.log('no log function provided')
+  //   const logfunction = console.log
+  // }
   // Look for the last generation nodes:
   const graphLastgen = lastGen(graph);
 
@@ -83,30 +86,7 @@ export function growOneGen(graph: IGraph) {
   return graphPromise;
 }
 
- /* // Perform the query for the unknown references and expand the graph:
-  return bibistore.query(missing).then(function() {
-    for (let doi of lastgen_doi) {
-      const metadata = bibistore.get(doi);
-
-      if (metadata.reference) {
-        metadata.reference.forEach(function(info) {
-          // Add node to the graph:
-          if (info["DOI"]) {
-            const refdoi = info["DOI"].trim().toLowerCase();
-            if (graph[refdoi]) {
-              graph[refdoi].citedby.push(doi);
-            } else {
-              graph[refdoi] = { gen: graph_lastgen + 1, citedby: [doi] };
-            }
-          }
-        });
-      } else {
-        console.log("no ref provided");
-      }
-    }
-    return graph;
-});*/
-
+// Selection rules:
 
 export function selectMinimumCited(graph: IGraph, minimumcited: number) {
   const keys = Object.keys(graph);
@@ -115,9 +95,19 @@ export function selectMinimumCited(graph: IGraph, minimumcited: number) {
   return remainingNodes;
 }
 
-export function upwardGraph(graph: IGraph, selectednodes: string[]) {
-  /* Build the upward graph from the selected nodes
+export function selectTopCited(graph: IGraph, ntop: number){
+  /* Sort the nodes by their 'in-graph' citation count
+  *  and keep the n at the top
   */
+  const keys = Object.keys(graph);
+  keys.sort( (a, b) => graph[b].citedby.length - graph[a].citedby.length  )
+  return keys.slice(0, ntop)
+}
+
+// --
+
+export function upwardGraph(graph: IGraph, selectednodes: string[]) {
+  /* Build the upward graph from the selected nodes */
 
   console.log(`\u{1F680} building the upward graph`);
 

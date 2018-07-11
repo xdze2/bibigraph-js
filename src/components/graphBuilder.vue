@@ -29,23 +29,29 @@ export default Vue.extend({
   computed: {
   },
   methods: {
+    pushLog(message:string){
+      this.log.push( message )
+    },
+    buildGraph(graphspec) {
+      this.pushLog( 'Start a new graph...' )
+      this.pushLog( `from ${graphspec.doilist.length} selected nodes, for 2 gen` );
 
-    buildGraph(doilist: string[]) {
-      this.log.push( 'new graph started...' )
-      console.log('selected nodes: ', doilist);
-
-      const graph = graphbuildingmachine.init_graph( doilist );
+      const graph = graphbuildingmachine.init_graph( graphspec.doilist );
 
       graphbuildingmachine.growOneGen( graph )
         .then( (graph) => graphbuildingmachine.growOneGen( graph ) )
         .then( (graph) => {
-          const nodes = graphbuildingmachine.selectMinimumCited(graph, 5);
+          // select:
+          let nodes = graphbuildingmachine.selectTopCited(graph, graphspec.ntop);
+          console.log('selected nodes: ', nodes );
+          // upward:
           const nodelinks = graphbuildingmachine.upwardGraph( graph, nodes );
           console.log('upward graph: ', nodelinks );
-          this.log.push( 'upward graph...' )
 
+          this.pushLog( 'upward graph build' )
+          this.pushLog( 'done' )
           EventBus.$emit('graphfinished', nodelinks);
-          this.log.push( 'done' )
+
         });
 
     },
