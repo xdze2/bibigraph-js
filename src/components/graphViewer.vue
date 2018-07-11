@@ -51,12 +51,16 @@ export default Vue.extend({
 
       graph.nodes.forEach((doi)=>{
         const metadata = bibistore.get(doi)
+        let key = doi;
+        if( metadata ){
+          key = metadata.key;
+        }
         let styles = [];
-        if( metadata.referenceWithDOI.length == 0 ){
+        if( metadata && metadata.referenceWithDOI.length == 0 ){
           styles.push('norefprovided')
         }
         g.setNode(doi, {
-          label: metadata.key,
+          label: key,
           id: 'doi'+doi.replace(/[\./]/g, ''),
           class:styles.join(' ')
         });
