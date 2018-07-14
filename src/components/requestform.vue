@@ -16,7 +16,8 @@
   <button v-on:click="submit(doitext)">go</button>
   </p>
   <p class='parseddoilist' v-if="doitext">
-  <span v-for="entry in analyseddoilist" v-bind:class="{'instore':entry.instore ,'notvaliddoi':entry.notvalid}">[{{ entry.key }}]  </span>
+  <span v-for="(entry, index) in analyseddoilist" v-bind:class="{'instore':entry.instore ,'notvaliddoi':entry.notvalid}">
+    [{{ entry.key }}<a href="#" title='remove' v-on:click="remove(index)">{{`\u{1F5D1}`}}</a>] </span>
   </p>
 
   <p>
@@ -67,6 +68,9 @@ export default Vue.extend({
       }
       EventBus.$emit('newgraphrequest', graphspec);
     },
+    remove(index){
+      this.doitext = this.doilist.filter( (doi, i) => index!=i ).join(', ')
+    }
   },
   components: {
   },

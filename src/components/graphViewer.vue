@@ -6,8 +6,9 @@
   </div>
 
   <div class="rightpanel">
-    <a v-if="selectednode" v-on:click="selectednode=null" href='#'>hide metadata</a>
-    <metadataviewer v-if="selectednode" v-bind:doi="selectednode"></metadataviewer>
+    <!-- <a v-if="selectednode" v-on:click="selectednode=null" href='#'>hide metadata</a> -->
+    <metadataviewer v-if="selectednode" v-bind:doi="selectednode" v-bind:graph="graph" >
+    </metadataviewer>
   </div>
 
   </div>
