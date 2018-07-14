@@ -122,6 +122,13 @@ export function getmany(doiList: string[]) {
   return query(missing).then(updatestorageandconcatenate);
 }
 
+export function isValidDOI( doi ){
+  /* Regex validation for doi
+  see: https://www.crossref.org/blog/dois-and-matching-regular-expressions/
+  */
+  const doiPattern = /^10.\d{4,9}\/[-._;()\/:A-Z0-9]+$/i;
+  return doiPattern.test(doi)
+}
 //
 // Query
 //
@@ -137,14 +144,14 @@ function query(doiList: string[]) {
 
   // doi parsing & Regex validation:
   doiList = doiList.map( (x) => x.trim());
-  const doiPattern = /^10.\d{4,9}\/[-._;()\/:A-Z0-9]+$/i;
 
-  const rejectedDoi = doiList.filter( (doi) => !doiPattern.test(doi));
+
+  const rejectedDoi = doiList.filter( (doi) => !isValidDOI(doi));
   if (rejectedDoi.length) {
     console.log("pattern rejected doi:", rejectedDoi);
   }
 
-  doiList = doiList.filter( (doi) => doiPattern.test(doi) );
+  doiList = doiList.filter( (doi) => isValidDOI(doi) );
 
   if( doiList.length==0 ){
       return Promise.resolve( [] )

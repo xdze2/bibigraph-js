@@ -16,7 +16,7 @@
   <button v-on:click="submit(doitext)">go</button>
   </p>
   <p class='parseddoilist' v-if="doitext">
-  Parsed list: <span v-for="doi in doilist">[{{ doi }}]  </span>
+  <span v-for="entry in analyseddoilist" v-bind:class="{'instore':entry.instore ,'notvaliddoi':entry.notvalid}">[{{ entry.key }}]  </span>
   </p>
 
   <p>
@@ -34,6 +34,7 @@ import Vue from 'vue';
 import { EventBus } from '../main';
 import * as graphbuilder from '../modules/graphbuilder';
 import graphviewer from '@/components/GraphViewer.vue';
+import * as bibistore from '../modules/bibistore';
 
 export default Vue.extend({
   name: 'requestform',
@@ -45,6 +46,16 @@ export default Vue.extend({
   }; },
   computed: {
     doilist (){ return this.doitext.split(/[,;\s]/).filter( (x) => x ) },
+    analyseddoilist(){
+      return this.doilist.map( (doi) => {
+        const metadata = bibistore.get(doi);
+        return {
+          key: (metadata ? metadata.key : doi),
+          instore: (metadata ? true : false),
+          notvalid: !bibistore.isValidDOI(doi),
+        }
+      })
+    },
   },
   methods: {
     submit(doitext: string) {
@@ -85,6 +96,14 @@ textarea {
 .parseddoilist{
   color: #777;
 }
+.parseddoilist .notvaliddoi {
+  color: red;
+  text-decoration: line-through;
+}
+.parseddoilist .instore {
+  color: magenta;
+}
+
 .requestform {
   padding: 5px;
   padding-left: 2em;
