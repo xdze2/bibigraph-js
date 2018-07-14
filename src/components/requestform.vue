@@ -25,7 +25,6 @@
     <a href='#' v-on:click="doitext='10.1103/physreva.51.1015, 10.1143/jpsj.43.1262,10.1109/tdei.2009.4784550,10.1038/30156,10.1103/physrevlett.1.275, 10.1080/00107519608217543'">example 3</a>
   </p>
 
-
 </div>
 </template>
 
@@ -38,6 +37,7 @@ import graphviewer from '@/components/GraphViewer.vue';
 
 export default Vue.extend({
   name: 'requestform',
+  props: ['spec'],
   data: () => { return {
       doitext: '',
       ngen: 2,
@@ -51,13 +51,21 @@ export default Vue.extend({
       const doilist = doitext.split(/[,;\s]/).filter( (x) => x );
       const graphspec = {
         doilist:doilist,
-        ntop:this.ntop
+        ntop:this.ntop,
+        ngen:this.ngen,
       }
       EventBus.$emit('newgraphrequest', graphspec);
     },
   },
   components: {
-  }
+  },
+  created(){
+    if(this.spec != null){
+      this.doitext = this.spec.doilist.join(', ')
+      this.ntop = this.spec.ntop
+      this.ngen = this.spec.ngen
+    }
+  },
 });
 </script>
 

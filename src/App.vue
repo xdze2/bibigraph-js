@@ -8,8 +8,8 @@
   <a href="#" v-else-if="graph" v-on:click="state='view'">[cancel]</a>
 </div>
 <div class="main">
-  <requestform v-if="['request'].includes(state)"></requestform>
-  <graphbuilder v-if="state=='building'" v-bind:doilist="doilist"></graphbuilder>
+  <requestform v-if="['request'].includes(state)" v-bind:spec="graphspec"></requestform>
+  <graphbuilder v-if="state=='building'" v-bind:graphspec="graphspec"></graphbuilder>
 
   <graphviewer v-if="state=='view'" v-bind:graph="graph"></graphviewer>
 </div>
@@ -38,12 +38,13 @@ export default Vue.extend({
   },
   data(){ return {
     state: 'request',
-    graph: undefined,
+    graph: null,
+    graphspec: null,
   }},
   created (){
-    EventBus.$on('newgraphrequest', (doilist) => {
+    EventBus.$on('newgraphrequest', (graphspec) => {
       this.state = 'building';
-      this.doilist = doilist;
+      this.graphspec = graphspec;
     });
     EventBus.$on('graphfinished', (graph) => {
       this.state = 'view';

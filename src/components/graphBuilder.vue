@@ -18,9 +18,9 @@ import * as graphbuildingmachine from '../modules/graphbuilder';
 
 export default Vue.extend({
   name: 'graphBuilder',
-  props: ['doilist'],
+  props: ['graphspec'],
   created (){
-      this.buildGraph(this.doilist);
+      this.buildGraph(this.graphspec);
   },
   data (){ return {
       log: ['\u{1F3ED}  hello'],
