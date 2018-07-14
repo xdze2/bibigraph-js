@@ -60,7 +60,8 @@ export default Vue.extend({
         const gen = node.gen;
 
         // label
-        const label = metadata ? metadata.key : doi ;
+        const key = metadata ? metadata.key : doi ;
+        const label = `${key}`
 
         let styles = [];
         if( !metadata || metadata.referenceWithDOI.length == 0 ){
@@ -70,7 +71,10 @@ export default Vue.extend({
         g.setNode(doi, {
           label: label,
           id: this.doiToCssID(doi),
-          class: styles.join(' ')
+          class: styles.join(' '),
+          // labelType: "html",
+          // width: 300,
+          // height: 30,
         });
       })
 
@@ -79,9 +83,9 @@ export default Vue.extend({
         g.setEdge(links[0], links[1], {});
 
       })
+
       // Create the renderer
       const render = new dagreD3.render();
-      // Set up an SVG group so that we can translate the final graph.
       const svg = d3.select('svg');
       const svgGroup = svg.append('g');
 
@@ -110,13 +114,22 @@ export default Vue.extend({
       //svg.attr('height', g.graph().height * initialScale + 40);
 
       // click node:
-      svg.selectAll("g.node").on("click", (id) => {
-        const _node = g.node(id);
-        // console.log("Clicked ", id, this);
-        this.selectednode = id;
-        svg.selectAll('.node').classed('selected', false);
-        svg.selectAll('#'+this.doiToCssID(id)).classed('selected', true);
-      });
+      svg.selectAll("g.node")
+        .on("click", (id) => {
+          const _node = g.node(id);
+          // console.log("Clicked ", id, this);
+          this.selectednode = id;
+          svg.selectAll('.node').classed('selected', false);
+          svg.selectAll('#'+this.doiToCssID(id)).classed('selected', true);
+        });
+
+      // additional styles
+      svg.selectAll(".node rect")
+        .attr('rx', "3")
+        .attr('ry', "3");
+
+      // svg.selectAll(".node")
+      //   .append("circle").attr("cx", 0).attr("cy", 0).attr("r", 10)
     },
   },
   components: {
@@ -144,10 +157,14 @@ svg {
 
 svg .node {
   cursor: pointer;
-  font-family: monospace;
+}
+svg .node rect {
+  stroke-width:.5;
+  stroke: #222;
+  transition: all .1s;
 }
 svg .node:hover rect {
-  fill: #F66;
+  filter: drop-shadow( 1px 1px 4px #888 );
 }
 svg .node.gen0 rect {
   fill: tomato;
@@ -159,10 +176,14 @@ svg .node.gen2 rect {
   fill: gold;
 }
 svg .node.selected rect {
-  fill: firebrick;
+  filter: drop-shadow( 1px 1px 6px #ff5588 );
 }
+/* svg .node.selected:hover rect {
+  filter: drop-shadow( 1px 1px 4px #ff5588 );
+} */
 svg .node.norefprovided rect {
   stroke-width:3;
+  stroke: red;
 }
 
 
@@ -170,10 +191,17 @@ svg .node.norefprovided rect {
   stroke: #333;
   fill: #333;
   stroke-width: 1.5px;
+  /* filter: drop-shadow( 1px 1px 2px #222 ); */
 }
 
-
-
+/* foreignObject div {
+  font-family: monospace;
+  font-size: 25px;
+  border: 1px solid black;
+  width: 100%;
+  height: 100%;
+  background-color: blue;
+} */
 
 /* Page layout */
 .rightpanel {
