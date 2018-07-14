@@ -40,6 +40,10 @@ export default Vue.extend({
 
   },
   methods: {
+    doiToCssID(doi){
+      doi = doi.replace(/[\./]/g, '');
+      return `doi${doi}`
+    },
     rendergraph(graph){
       console.log(' Do you see a graph? \u{1F986} ')
       console.log(graph)
@@ -49,23 +53,28 @@ export default Vue.extend({
         rankdir: 'LR',
       });
 
-      graph.nodes.forEach((doi)=>{
-        const metadata = bibistore.get(doi)
-        let key = doi;
-        if( metadata ){
-          key = metadata.key;
-        }
+      // Append the nodes:
+      graph.nodes.forEach( (node)=>{
+        const doi = node.doi;
+        const metadata = bibistore.get(doi);
+        const gen = node.gen;
+
+        // label
+        const label = metadata ? metadata.key : doi ;
+
         let styles = [];
-        if( metadata && metadata.referenceWithDOI.length == 0 ){
+        if( !metadata || metadata.referenceWithDOI.length == 0 ){
           styles.push('norefprovided')
         }
+        styles.push(`gen${gen}`)
         g.setNode(doi, {
-          label: key,
-          id: 'doi'+doi.replace(/[\./]/g, ''),
-          class:styles.join(' ')
+          label: label,
+          id: this.doiToCssID(doi),
+          class: styles.join(' ')
         });
       })
 
+      // Appends the links:
       graph.links.forEach( (links)=>{
         g.setEdge(links[0], links[1], {});
 
@@ -105,8 +114,8 @@ export default Vue.extend({
         const _node = g.node(id);
         // console.log("Clicked ", id, this);
         this.selectednode = id;
-        svg.selectAll('.node rect').style("fill", "white"); // TODO: toggle class instead
-        svg.selectAll('#doi'+id.replace(/[\./]/g, '')+' rect').style("fill", "#F44");
+        svg.selectAll('.node').classed('selected', false);
+        svg.selectAll('#'+this.doiToCssID(id)).classed('selected', true);
       });
     },
   },
@@ -128,6 +137,45 @@ svg {
 
 }
 
+ /* graph  */
+ /* color code svg
+ https://www.graphviz.org/doc/info/colors.html
+ */
+
+svg .node {
+  cursor: pointer;
+  font-family: monospace;
+}
+svg .node:hover rect {
+  fill: #F66;
+}
+svg .node.gen0 rect {
+  fill: tomato;
+}
+svg .node.gen1 rect {
+  fill: chartreuse;
+}
+svg .node.gen2 rect {
+  fill: gold;
+}
+svg .node.selected rect {
+  fill: firebrick;
+}
+svg .node.norefprovided rect {
+  stroke-width:3;
+}
+
+
+.edgePath path {
+  stroke: #333;
+  fill: #333;
+  stroke-width: 1.5px;
+}
+
+
+
+
+/* Page layout */
 .rightpanel {
   position: absolute;
   top:5px;
@@ -151,28 +199,6 @@ svg {
 
   box-sizing: border-box;
   box-shadow: inset 2px 3px 6px 0px #e5e5e4;
-}
-
-.node rect {
-  stroke: #333;
-  fill: #fff;
-}
-
-.edgePath path {
-  stroke: #333;
-  fill: #333;
-  stroke-width: 1.5px;
-}
-.node {
-  cursor: pointer;
-}
-.node:hover  {
-  color: "#F66";
-}
-
-.norefprovided rect { //svg
-  fill:rgb(0,0,255);
-  stroke-width:3;
 }
 
 </style>

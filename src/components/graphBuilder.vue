@@ -50,7 +50,16 @@ export default Vue.extend({
 
           this.pushLog( 'upward graph build' )
           this.pushLog( 'done' )
-          EventBus.$emit('graphfinished', nodelinks);
+
+          const graphobj = {
+            nodes: nodelinks.nodes.map( (doi) => {
+              const g = graph[doi];
+              g.doi = doi;
+              return g;
+            } ),
+            links: nodelinks.links,
+          };
+          EventBus.$emit('graphfinished', graphobj);
 
         });
 
