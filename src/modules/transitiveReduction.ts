@@ -14,7 +14,7 @@ https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm
 
 Steps:
 1. Remove back edge (cycle) using DFS
-2. Build the transitve closure (all readachable node) (time N3)
+2. Build the transitve closure (all reachable node) (time N3)
 3. Get the Transitive Reduction by removing edges with secondary path
 
 input: list of links
@@ -97,9 +97,10 @@ export function transitiveClosure(nodes: Set<string>, links: Array<[string, stri
   return TC;
 }
 
-function transitiveReduction(nodes: Set<string>, TC: Set<string>) {
+function transitiveReduction(nodes: Set<string>, TC: Set<string>): [Set<string>, Set<string>] {
   /* input: TR is the transitve closure returned by `transitiveClosure()` */
   const TR = new Set(TC);
+  const secondary: Set<string> = new Set();
 
   for (const st of TC) {
     const [s, t] = st.split("_edge_");
@@ -108,10 +109,11 @@ function transitiveReduction(nodes: Set<string>, TC: Set<string>) {
       const kt = [k, t].join("_edge_");
       if (TC.has(sk) && TC.has(kt)) {
         TR.delete(st);
+        secondary.add(st)
       }
     }
   }
-  return TR;
+  return [TR, secondary];
 }
 
 export function graphreduce(links: Array<[string, string]>) {
@@ -123,7 +125,11 @@ export function graphreduce(links: Array<[string, string]>) {
   const backedge = searchBackEdge(adj);
   const dag = links.filter(edge => !backedge.has(edge.join("_edge_")));
   const TC = transitiveClosure(nodes, dag);
-  const TR = transitiveReduction(nodes, TC);
 
-  return  Array.from(TR).map( (edge) => edge.split('_edge_') );
+  const [TR, secondaryLinks] = transitiveReduction(nodes, TC);
+
+  return [
+    Array.from(TR).map( (edge) => edge.split('_edge_') ),
+    Array.from(secondaryLinks).map( (edge) => edge.split('_edge_') )
+  ]
 }
