@@ -6,7 +6,6 @@
   <!-- <span class='debug'>state: {{state}}</span> -->
   <a href="javascript:" v-if="state=='view'" v-on:click="state='request'" class='navlink'>edit</a>
   <a href="javascript:" v-else-if="graph" v-on:click="state='view'" class='navlink'>←</a>
-
   <!-- <a href="#" class='navlink'>about</a> -->
 </div>
 <div class="main">

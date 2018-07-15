@@ -10,11 +10,11 @@
       <p>
       <span v-for="auth of metadata.authors">{{auth}}, </span>
       </p>
-    ({{metadata.year}}) {{metadata.journal}}
+    {{metadata.year}} - {{metadata.journal}}
     <a v-bind:href="metadata.url" target="_blank">{{metadata.doi}}</a>
 
     <p>
-      <b>{{metadata.citedbycount}}</b> citations
+      <b>{{metadata.citedbycount}}</b> citations ({{node.citedby.length}} in the graph, # known)
     </p>
 
 
@@ -28,16 +28,18 @@
           {{ref.ingraph ? `\u{2714}`:''}} {{ref.key}}  {{ref.instore ? `\u{1F4BE}`:''}}
         </span>
         <span v-else>
-          {{`\u3030`}} 	missing
+         -- missing
         </span>
       </li>
 
     </ol>
 
     </div>
-    <p v-else >
-      No metadata for {{doi}}.
-    </p>
+    <div v-else >
+      No metadata for {{doi}}. <p><a href=''>Look on crossref</a></p>
+
+      {{node}}
+    </div>
 
   </div>
   </div>
@@ -66,6 +68,9 @@ export default Vue.extend({
         return this.metadata.reference.map( this.parseRefField )
       }
       return 'ref'
+    },
+    node(){
+      return this.graph.nodes.filter( (node) => node.doi.toLowerCase() === this.doi.toLowerCase() )[0]
     }
   },
   methods: {
