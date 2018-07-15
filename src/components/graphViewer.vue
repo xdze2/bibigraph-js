@@ -51,7 +51,7 @@ export default Vue.extend({
 
       // Create a new directed graph
       const g = new dagreD3.graphlib.Graph().setGraph({
-        rankdir: 'LR',
+        rankdir: 'LR'
       });
 
       // Append the nodes:
@@ -81,7 +81,9 @@ export default Vue.extend({
 
       // Appends the links:
       graph.links.forEach( (links)=>{
-        g.setEdge(links[0], links[1], {});
+        g.setEdge(links[0], links[1], {
+          curve: d3.curveBasis,
+        });
 
       })
 
