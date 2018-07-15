@@ -32,6 +32,7 @@ class Metadata {
   data: {};
   key: string;
   authors: string[];
+  citedby: string[];
 
   constructor(metadata) {
     /* Take the metadata from Crossref */
@@ -63,6 +64,7 @@ class Metadata {
       this.authors = [];
       this.key = this.doi;
     }
+    this.citedby = [];
   }
 }
 
@@ -85,6 +87,29 @@ export function get(doi: string): IMetadata | undefined {
   /* Return the stored metadata or null */
   return storage[format_doi(doi)];
 }
+
+export function getall_doi(): string[]{
+  return Object.keys(storage).map( (key) => storage[key].doi )
+}
+
+export function update_citedby(){
+  const alldoi = getall_doi()
+
+  for ( const doi of alldoi ){
+    const metadata = get(doi)
+    metadata.citedby = []
+  };
+  for ( const doi of alldoi ){
+    const refs = get(doi).referenceWithDOI
+      for(const ref of refs){
+        const metadata = get(ref)
+        if( metadata ){
+          metadata.citedby.push(doi)
+        }
+      }
+  };
+}
+
 
 export function getmany(doiList: string[]) {
   /* async, return the metadata for the asked doi
@@ -115,6 +140,7 @@ export function getmany(doiList: string[]) {
   function updatestorageandconcatenate(data: IMetadata[]) {
     data.forEach( (metadata) => {storage[format_doi(metadata.doi)] = metadata} );
     present.push(...data)
+    update_citedby()
     return present;
   }
 

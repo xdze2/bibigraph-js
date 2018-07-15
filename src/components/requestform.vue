@@ -26,6 +26,9 @@
     <a href='#' v-on:click="doitext='10.1103/physreva.51.1015, 10.1143/jpsj.43.1262,10.1109/tdei.2009.4784550,10.1038/30156,10.1103/physrevlett.1.275, 10.1080/00107519608217543'">example 3</a>
   </p>
 
+  <p>
+    {{allstoreddoi.length}} {{allstoreddoi}}
+  </p>
 </div>
 </template>
 
@@ -57,6 +60,9 @@ export default Vue.extend({
         }
       })
     },
+    allstoreddoi (){
+      return bibistore.getall_doi()
+    }
   },
   methods: {
     submit(doitext: string) {

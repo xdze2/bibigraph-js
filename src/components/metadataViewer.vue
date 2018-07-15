@@ -14,10 +14,20 @@
     <a v-bind:href="metadata.url" target="_blank">{{metadata.doi}}</a>
 
     <p>
-      <b>{{metadata.citedbycount}}</b> citations ({{node.citedby.length}} in the graph, # known)
+      <b>{{metadata.citedbycount}}</b> citations ({{node.citedby.length}} in the graph,
+      {{metadata.citedby.length}} known)
+
+      <ul v-if="citedby">
+
+        <li v-for="ref in citedby">
+            <span v-if="ref.ingraph">{{`\u{2714}`}}</span> {{ref.key}} {{ref.doi}}
+        </li>
+
+      </ul>
+
     </p>
 
-
+    <p>
       {{metadata.referencescount}} references ({{metadata.referenceWithDOI.length}} with a doi): <br />
 
 
@@ -33,7 +43,7 @@
       </li>
 
     </ol>
-
+  </p>
     </div>
     <div v-else >
       No metadata for {{doi}}. <p><a href=''>Look on crossref</a></p>
@@ -71,7 +81,14 @@ export default Vue.extend({
     },
     node(){
       return this.graph.nodes.filter( (node) => node.doi.toLowerCase() === this.doi.toLowerCase() )[0]
-    }
+    },
+    citedby(){
+      return this.metadata.citedby.map( (doi)=> ({
+        key: bibistore.get(doi).key,
+        doi: doi,
+        ingraph: this.isInGraph(doi),
+      }))
+    },
   },
   methods: {
     parseRefField(ref){
