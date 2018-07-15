@@ -16,6 +16,7 @@ Steps:
  */
 
 import * as bibistore from "./bibistore";
+import {graphreduce} from './transitiveReduction';
 
 interface IGraph {
   [key: string]: {
@@ -124,5 +125,6 @@ export function upwardGraph(graph: IGraph, selectednodes: string[]) {
     });
   }
 
-  return { nodes: nodes, links: links };
+  const [TR, secondary] = graphreduce(links);
+  return { nodes: nodes, links: TR, secondary:secondary };
 }

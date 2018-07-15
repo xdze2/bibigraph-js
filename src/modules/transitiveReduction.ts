@@ -25,7 +25,7 @@ interface Iadj {
   [key: string]: string[];
 }
 
-export function adjacency(links: Array<[string, string]>): [Iadj, Set<string>] {
+function adjacency(links: Array<[string, string]>): [Iadj, Set<string>] {
   /* Build the adjacency matrix {source: [target, ...], ...}
      Return also the set of nodes
   */
@@ -73,7 +73,7 @@ function searchBackEdge(adj: Iadj) {
   return backedge;
 }
 
-export function transitiveClosure(nodes: Set<string>, links: Array<[string, string]>) {
+function transitiveClosure(nodes: Set<string>, links: Array<[string, string]>) {
   /* Compute the transitve closure (Floyd–Warshall algorithm)
       return a set of concatenated links: s_edge_t
   */
@@ -97,10 +97,9 @@ export function transitiveClosure(nodes: Set<string>, links: Array<[string, stri
   return TC;
 }
 
-function transitiveReduction(nodes: Set<string>, TC: Set<string>): [Set<string>, Set<string>] {
+function transitiveReduction(nodes: Set<string>, TC: Set<string>): Set<string> {
   /* input: TR is the transitve closure returned by `transitiveClosure()` */
   const TR = new Set(TC);
-  const secondary: Set<string> = new Set();
 
   for (const st of TC) {
     const [s, t] = st.split("_edge_");
@@ -109,14 +108,13 @@ function transitiveReduction(nodes: Set<string>, TC: Set<string>): [Set<string>,
       const kt = [k, t].join("_edge_");
       if (TC.has(sk) && TC.has(kt)) {
         TR.delete(st);
-        secondary.add(st)
       }
     }
   }
-  return [TR, secondary];
+  return TR;
 }
 
-export function graphreduce(links: Array<[string, string]>) {
+export function graphreduce(links: Array<[string, string]>){
   /* Return the transitve reduction of the graph
     input: list of links [source, target]
    */
@@ -125,11 +123,11 @@ export function graphreduce(links: Array<[string, string]>) {
   const backedge = searchBackEdge(adj);
   const dag = links.filter(edge => !backedge.has(edge.join("_edge_")));
   const TC = transitiveClosure(nodes, dag);
+  const TR = transitiveReduction(nodes, TC);
 
-  const [TR, secondaryLinks] = transitiveReduction(nodes, TC);
-
+  const secondaryLinks = links.filter( (edge)=> !TR.has(edge.join("_edge_")) )
   return [
-    Array.from(TR).map( (edge) => edge.split('_edge_') ),
-    Array.from(secondaryLinks).map( (edge) => edge.split('_edge_') )
-  ]
+    Array.from(TR).map(edge => edge.split("_edge_")),
+    secondaryLinks
+  ];
 }

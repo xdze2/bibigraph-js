@@ -15,7 +15,6 @@ import {EventBus} from '../main';
 
 import * as graphbuildingmachine from '../modules/graphbuilder';
 
-
 export default Vue.extend({
   name: 'graphBuilder',
   props: ['graphspec'],
@@ -58,6 +57,7 @@ export default Vue.extend({
               return g;
             } ),
             links: nodelinks.links,
+            secondary: nodelinks.secondary,
           };
           EventBus.$emit('graphfinished', graphobj);
 

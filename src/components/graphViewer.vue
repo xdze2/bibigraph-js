@@ -80,12 +80,21 @@ export default Vue.extend({
       })
 
       // Appends the links:
+      graph.secondary.forEach( (links)=>{
+        g.setEdge(links[0], links[1], {
+          curve: d3.curveBasis,
+          style: "stroke: #777; fill:none; stroke-width: 1px;",
+            weight: 0.1,
+        });
+      })
       graph.links.forEach( (links)=>{
         g.setEdge(links[0], links[1], {
           curve: d3.curveBasis,
+          style: "stroke: #001; fill:none; stroke-width: 2px;",
+          weight: 2,
         });
-
       })
+
 
       // Create the renderer
       const render = new dagreD3.render();
