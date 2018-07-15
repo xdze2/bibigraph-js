@@ -2,7 +2,7 @@
   <div class="graphviewer">
 
   <div class="graphpanel">
-    <svg id='svggraph'></svg>
+    <svg id='svggraph' height="100%" width="100%"></svg>
   </div>
 
   <div class="rightpanel">
@@ -54,7 +54,6 @@ export default Vue.extend({
     },
     rendergraph(graph){
       console.log(' Do you see a graph? \u{1F986} ')
-      console.log(graph)
 
       // Create a new directed graph
       const g = new dagreD3.graphlib.Graph().setGraph({
@@ -88,7 +87,6 @@ export default Vue.extend({
 
       // Appends the links:
       if(this.drawsecondary){
-        console.log('add secondary')
         graph.secondary.forEach( (links)=>{
           g.setEdge(links[0], links[1], {
             curve: d3.curveBasis,
@@ -109,7 +107,7 @@ export default Vue.extend({
       // Create the renderer
       const render = new dagreD3.render();
       const svg = d3.select('svg');
-      svg.selectAll("*").remove();
+      svg.selectAll("*").remove(); // init
 
       const svgGroup = svg.append('g');
 
@@ -117,10 +115,18 @@ export default Vue.extend({
       gr.length = 1 // non working hack
       // Run the renderer. This is what draws the final graph.
       render(gr, g);
+
       // Center the graph
-      var xCenterOffset = (Number(svg.attr('width')) - g.graph().width) / 2;
-      svgGroup.attr('transform', 'translate(' + xCenterOffset + ', 20)');
-      //svg.attr('height', g.graph().height + 40);
+      const svgBBox = svg.node().getBoundingClientRect()
+      const [svgwidth, svgheight] = [svgBBox.width, svgBBox.height]
+      const [graphwidth, graphheight] = [g.graph().width, g.graph().height]
+
+      const initialScale = .96*Math.min( svgwidth/graphwidth, svgheight/graphheight );
+
+      const x_offset = (svgwidth - initialScale*graphwidth)/2
+      const y_offset = (svgheight - initialScale*graphheight)/2
+
+      svgGroup.attr('transform', `translate( ${x_offset}, ${y_offset}) scale(${initialScale})`)
 
       // Set up zoom support
       var zoom = d3.zoom().on("zoom", function() {
@@ -128,14 +134,8 @@ export default Vue.extend({
           });
       svg.call(zoom);
 
-      zoom.scaleExtent([.2, 3]);
+      zoom.scaleExtent([initialScale, initialScale*4]);
 
-      // Center the graph
-      const initialScale = 0.75;
-      let w = Number(svg.attr("width"));
-      svg.call(zoom.transform, d3.zoomIdentity.translate((w - g.graph().width * initialScale) / 2, 20).scale(initialScale));
-
-      //svg.attr('height', g.graph().height * initialScale + 40);
 
       // click node:
       svg.selectAll("g.node")
