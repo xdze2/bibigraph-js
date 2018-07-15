@@ -24,7 +24,7 @@ import { EventBus } from '../main';
 
 export default Vue.extend({
   name: 'GraphViewer',
-  props: ['graph'],
+  props: ['graph', 'drawsecondary'],
   data(){return {
     selectednode: null,
     //graph: undefined,
@@ -37,8 +37,15 @@ export default Vue.extend({
     //     this.rendergraph(graph);
     // });
   },
-  beforeUpdate() {
-
+  updated() {
+    console.log('graph view update!')
+    //this.rendergraph(this.graph)
+  },
+  watch: {
+    drawsecondary: function(){
+      console.log('hello, prop watched')
+      this.rendergraph(this.graph)
+    },
   },
   methods: {
     doiToCssID(doi){
@@ -80,18 +87,21 @@ export default Vue.extend({
       })
 
       // Appends the links:
-      graph.secondary.forEach( (links)=>{
-        g.setEdge(links[0], links[1], {
-          curve: d3.curveBasis,
-          style: "stroke: #777; fill:none; stroke-width: 1px;",
-            weight: 0.1,
-        });
-      })
+      if(this.drawsecondary){
+        console.log('add secondary')
+        graph.secondary.forEach( (links)=>{
+          g.setEdge(links[0], links[1], {
+            curve: d3.curveBasis,
+            style: "stroke: #777; fill:none; stroke-width: 1px;",
+            weight: .05,
+          });
+        })
+      }
       graph.links.forEach( (links)=>{
         g.setEdge(links[0], links[1], {
           curve: d3.curveBasis,
           style: "stroke: #001; fill:none; stroke-width: 2px;",
-          weight: 2,
+          weight: 1,
         });
       })
 
@@ -99,6 +109,8 @@ export default Vue.extend({
       // Create the renderer
       const render = new dagreD3.render();
       const svg = d3.select('svg');
+      svg.selectAll("*").remove();
+
       const svgGroup = svg.append('g');
 
       const gr = d3.select('svg>g')
@@ -139,6 +151,10 @@ export default Vue.extend({
       svg.selectAll(".node rect")
         .attr('rx', "3")
         .attr('ry', "3");
+
+      if(this.selectednode){
+        svg.selectAll('#'+this.doiToCssID(this.selectednode)).classed('selected', true);
+      }
 
       // svg.selectAll(".node")
       //   .append("circle").attr("cx", 0).attr("cy", 0).attr("r", 10)

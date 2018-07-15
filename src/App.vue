@@ -6,13 +6,17 @@
   <!-- <span class='debug'>state: {{state}}</span> -->
   <a href="javascript:" v-if="state=='view'" v-on:click="state='request'" class='navlink'>edit</a>
   <a href="javascript:" v-else-if="graph" v-on:click="state='view'" class='navlink'>←</a>
+
+  <input type="checkbox" id="drawSecondary" v-model="drawSecondary">
+  <label for="drawSecondary">secondary links {{ drawSecondary }}</label>
+
   <!-- <a href="#" class='navlink'>about</a> -->
 </div>
 <div class="main">
   <requestform v-if="['request'].includes(state)" v-bind:spec="graphspec"></requestform>
   <graphbuilder v-if="state=='building'" v-bind:graphspec="graphspec"></graphbuilder>
 
-  <graphviewer v-if="state=='view'" v-bind:graph="graph"></graphviewer>
+  <graphviewer v-if="state=='view'" v-bind:graph="graph" v-bind:drawsecondary="drawSecondary"></graphviewer>
 </div>
 
 </div>
@@ -41,6 +45,7 @@ export default Vue.extend({
     state: 'request',
     graph: null,
     graphspec: null,
+    drawSecondary: true,
   }},
   created (){
     EventBus.$on('newgraphrequest', (graphspec) => {
