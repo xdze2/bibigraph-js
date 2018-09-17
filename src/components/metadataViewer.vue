@@ -3,47 +3,51 @@
 
     <div v-if="metadata">
       <span class='refnumber'>{{metadata.key}}</span>
-      add
+
       <h3>{{metadata.title}}</h3>
 
 
       <p>
       <span v-for="auth of metadata.authors">{{auth}}, </span>
       </p>
-    {{metadata.year}} - {{metadata.journal}}
+    {{metadata.year}} - {{metadata.journal}} <br />
     <a v-bind:href="metadata.url" target="_blank">{{metadata.doi}}</a>
 
-    <p>
-      <b>{{metadata.citedbycount}}</b> citations ({{node.citedby.length}} in the graph,
-      {{metadata.citedby.length}} known)
-
-      <ul v-if="citedby">
-
-        <li v-for="ref in citedby">
-            <span v-if="ref.ingraph">{{`\u{2714}`}}</span> {{ref.key}} {{ref.doi}}
-        </li>
-
-      </ul>
-
-    </p>
-
-    <p>
-      {{metadata.referencescount}} references ({{metadata.referenceWithDOI.length}} with a doi): <br />
+    <h4>Citations:</h4>
+    <ul v-if="citedby">
+      <li v-for="ref in citedby">
+          <span v-if="ref.ingraph">{{`\u{2714}`}} {{ref.key}} </span>
+          <span v-else>- {{ref.key}}</span>
+      </li>
 
 
+    </ul>
+
+<p><b>{{metadata.citedbycount}}</b> citations ({{node.citedby.length}} in the graph,
+{{metadata.citedby.length}} known)</p>
+
+    <h4>References:</h4>
     <ol v-if="reference">
 
       <li v-for="ref in reference">
-        <span v-if="ref.doi">
-          {{ref.ingraph ? `\u{2714}`:''}} {{ref.key}}  {{ref.instore ? `\u{1F4BE}`:''}}
+        <span v-if="ref.ingraph" class='ref-ingraph'>
+          {{ref.key}}
         </span>
-        <span v-else>
-         -- missing
+        <span v-else-if="ref.instore" class='ref-instore'>
+          {{ref.key}}
+        </span>
+        <span v-else-if="ref.doi" class='ref-missing'>
+          {{ref.doi}}
+        </span>
+        <span v-else class='ref-nodoi'>
+           -
         </span>
       </li>
 
     </ol>
-  </p>
+
+<p>{{metadata.referencescount}} references, {{metadata.referenceWithDOI.length}} with a doi.</p>
+
     </div>
     <div v-else >
       No metadata for {{doi}}. <p><a href=''>Look on crossref</a></p>
@@ -130,12 +134,55 @@ h3 {
   display: block;
   margin-top: 3px;
 }
+h4 {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  font-weight: normal;
+  font-size: 115%;
+}
+h4 + * {
+  margin-top: .1em;
+}
+ul, ol, li {
+  list-style: none;
+  margin-left: 0;
+  padding-left: 0;
+}
+ol {list-style: none; counter-reset: li}
+ol > li::before {
+  content: counter(li);
+  display: inline-block;
+  width: 2em;
+  margin-left: -2em;
+  color: #888;
+  font-size: 75%;
+  font-weight: bold;
+  text-align: right;
+}
+ol > li {
+  counter-increment: li;
+  margin-left: 1em;
+}
+
 .refnumber {
   font-style: 105%;
   color: #aaa;
   font-weight: normal;
   font-family: monospace;
 }
-
+.ref-missing {
+  color: #666;
+}
+.ref-ingraph {
+  color: black;
+  font-weight: bold;
+}
+.ref-instore {
+  color: black;
+  font-weight: normal;
+}
+.ref-nodoi {
+  color: #666;
+}
 
 </style>
