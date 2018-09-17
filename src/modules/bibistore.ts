@@ -1,16 +1,13 @@
-/*
- Interface with the Crossref API
-
- - store the metadata
-
+/* ===( bibistore )===
+ * Interface with the Crossref API
+ * and with the cache (i.e. internal storage)
+ *   - provider of the metadata -
  */
 
 import axios from "axios";
 
 //
-// Storage
-//
-//
+//-  Storage  -//
 export interface IMetadata {
   doi: string;
   reference?: {
@@ -18,7 +15,8 @@ export interface IMetadata {
   }[];
 }
 
-// apiformat: https://github.com/CrossRef/rest-api-doc/blob/master/api_format.md
+// doc about apiformat:
+// https://github.com/CrossRef/rest-api-doc/blob/master/api_format.md
 class Metadata {
   doi: string;
   title: string;
@@ -35,7 +33,7 @@ class Metadata {
   citedby: string[];
 
   constructor(metadata) {
-    /* Take the metadata from Crossref */
+    /* Takes and parse the metadata from Crossref */
     this.data = metadata;
     this.title = (metadata["title"] || [''])[0];
     this.year = metadata["issued"]["date-parts"][0][0];
@@ -68,14 +66,14 @@ class Metadata {
   }
 }
 
-
 interface IStorageType {
     [key: string]: IMetadata;
 }
 
 const storage: IStorageType = {};
 
-const PREFIX = "doi_"; // the prefix is added to the key
+const PREFIX = "doi_";  // the prefix is added to the key
+                        // in the localstorage
 
 function format_doi(doi: string) {
   /* Convert the doi to a key used in the storage */
@@ -84,15 +82,23 @@ function format_doi(doi: string) {
 }
 
 export function get(doi: string): IMetadata | undefined {
-  /* Return the stored metadata or null */
+  /* Returns the stored metadata or null is absent
+   * - Main access to the store -
+   */
   return storage[format_doi(doi)];
 }
 
 export function getall_doi(): string[]{
+  /* Return list of all stored doi */
   return Object.keys(storage).map( (key) => storage[key].doi )
 }
 
 export function update_citedby(){
+  /*  Go through all stored metadata
+   *  and fill the  citedby  field
+   *
+   * TODO: really an update: accept a doi list as input
+   */
   const alldoi = getall_doi()
 
   for ( const doi of alldoi ){
@@ -110,11 +116,12 @@ export function update_citedby(){
   };
 }
 
-
+//
+//-  Crossref junction  -//
 export function getmany(doiList: string[]) {
   /* async, return the metadata for the asked doi
   *  perform the query for the missing metadata
-  *  update the storage
+  *  update citedby in the storage
   *
   *  Return an Array of metadata object
   */
@@ -155,9 +162,8 @@ export function isValidDOI( doi ){
   const doiPattern = /^10.\d{4,9}\/[-._;()\/:A-Z0-9]+$/i;
   return doiPattern.test(doi)
 }
-//
-// Query
-//
+
+// Query:
 const MAILADRESS = "https://github.com/xdze2";
 const USERAGENT = "bibigraph app https://github.com/xdze2/bibigraph";
 const MAXQUERYSIZE = 16;
@@ -165,12 +171,11 @@ const url = "https://api.crossref.org/works";
 
 function query(doiList: string[]) {
   /*  Query the Crossref API for the given list of doi,
-   *  and store the metadata in storage.
+   *  and return list of Metadata object
   */
 
   // doi parsing & Regex validation:
   doiList = doiList.map( (x) => x.trim());
-
 
   const rejectedDoi = doiList.filter( (doi) => !isValidDOI(doi));
   if (rejectedDoi.length) {
