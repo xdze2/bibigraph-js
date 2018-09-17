@@ -4,7 +4,7 @@
 <div class="header">
   <h1>bibigraph</h1>
   <!-- <span class='debug'>state: {{state}}</span> -->
-  <a href="javascript:" v-if="state=='view'" v-on:click="state='request'" class='navlink'>edit</a>
+  <a href="javascript:" v-if="state=='view'" v-on:click="state='request'" class='navlink'>create</a>
   <a href="javascript:" v-else-if="graph" v-on:click="state='view'" class='navlink'>←</a>
 
   <input type="checkbox" id="drawSecondary" v-model="drawSecondary">
