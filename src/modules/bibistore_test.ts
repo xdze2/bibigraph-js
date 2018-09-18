@@ -1,7 +1,7 @@
 
 import * as bibistore from  './bibistore';
 
-
+console.log('>> bibistore test')
 
 //import { expect } from 'chai';
 //import 'mocha';
@@ -43,7 +43,7 @@ const doi_list = ['10.1109/50.4133', '10.1103/physreva.38.1207', '10.1088/0143-0
 '10.1103/physrev.114.1219', '10.1103/physrev.97.1721', '10.1103/physreva.57.r1',
 '10.1103/physrevlett.62.2124', '10.1016/j.cap.2006.09.022']
 
-console.log("doi list", doi_list.length)
+console.log("doi list, lenght:", doi_list.length)
 
 const shortdoilist =  ['10.1103/physreva.51.1015', '10.1143/jpsj.43.1262', '10.1109/tdei.2009.4784550',
 '10.1038/30156', '10.1103/physrevlett.1.275', '10.1080/00107519608217543',
@@ -54,13 +54,21 @@ const shortdoilist =  ['10.1103/physreva.51.1015', '10.1143/jpsj.43.1262', '10.1
 '10.1103/physrev.114.1219', '10.1103/physrev.97.1721', '10.1103/physreva.57.r1',
 '10.1103/physrevlett.62.2124', '10.1016/j.cap.2006.09.022']
 
-console.log("doi short list", shortdoilist.length)
+console.log("short doi list, lenght:", shortdoilist.length)
+
+//console.log('get a doi', bibistore.get(['10.1103/physrev.114.1219']) )
+
+console.log('query a doi', bibistore.query(shortdoilist)
+  .then( (rep) => { console.log(rep)} )
+)
+
 
 /*
 bibistore.query( shortdoilist )
   .then( data => console.log( data.length ))
   .catch(err=>console.log(err))
 */
+/*
 bibistore.getmany(shortdoilist)
   .then( x=>console.log( 'query short', x.length ) )
   .then( x=> {
@@ -71,3 +79,4 @@ bibistore.getmany(shortdoilist)
 
 bibistore.getmany([])
   .then( x=>console.log( 'empty query', x ) )
+*/
