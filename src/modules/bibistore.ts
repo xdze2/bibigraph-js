@@ -75,7 +75,7 @@ function format_doi(doi: string): string {
 
 /**
  * Main acces to the store
- * Returns the stored metadata or null is absent
+ * Returns the stored metadata or null if absent
  * @param list of doi
  * @return list of metadata object
  */
@@ -113,6 +113,17 @@ export function alldoi(): string[]{
   return Object.keys(storage).map( (key) => storage[key].doi )
 }
 
+/**
+ * Regex validation for a doi string
+ * see: https://www.crossref.org/blog/dois-and-matching-regular-expressions/
+ * @param string doi
+ * @return bool
+ */
+export function isValidDOI( doi:string ):boolean {
+  const doiPattern = /^10.\d{4,9}\/[-._;()\/:A-Z0-9]+$/i;
+  return doiPattern.test(doi)
+}
+
 /** --- Query --- */
 
 /**
@@ -124,6 +135,9 @@ export function alldoi(): string[]{
  * @return         [description]
  */
 export function query(doilist: string[]){
+
+  // filter out non valid doi
+  doilist = doilist.filter(isValidDOI)
 
   const datapromise = query_crossref(doilist).then( (data) => {
 
@@ -165,7 +179,7 @@ function query_crossref_chunk(doiList: string[]): Promise<Metadata[]> {
         mailto: MAILADRESS,
         rows: MAXQUERYSIZE
       },
-      headers: { "User-Agent": USERAGENT },
+      // headers: { "User-Agent": USERAGENT },
       responseType: "json"
     })
     .then((response) => {
@@ -174,7 +188,8 @@ function query_crossref_chunk(doiList: string[]): Promise<Metadata[]> {
     })
     .catch((error) => {
       console.log("<< query error !! >>");
-      console.log(error);
+      console.log(error.request);
+      return [];
     });
 
   return querypromise;

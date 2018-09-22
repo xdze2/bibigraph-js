@@ -4,19 +4,21 @@
 <div class="header">
   <h1>bibigraph</h1>
   <!-- <span class='debug'>state: {{state}}</span> -->
-  <a href="javascript:" v-if="state=='view'" v-on:click="state='request'" class='navlink'>create</a>
-  <a href="javascript:" v-else-if="graph" v-on:click="state='view'" class='navlink'>←</a>
+  <!-- <a href="javascript:" v-if="state=='view'" v-on:click="state='request'" class='navlink'>create</a> -->
+  <!-- <a href="javascript:" v-else-if="graph" v-on:click="state='view'" class='navlink'>←</a> -->
 
-  <input type="checkbox" id="drawSecondary" v-model="drawSecondary">
-  <label for="drawSecondary">secondary links {{ drawSecondary }}</label>
+  <!-- <input type="checkbox" id="drawSecondary" v-model="drawSecondary"> -->
+  <!-- <label for="drawSecondary">secondary links {{ drawSecondary }}</label> -->
 
   <!-- <a href="#" class='navlink'>about</a> -->
 </div>
 <div class="main">
-  <requestform v-if="['request'].includes(state)" v-bind:spec="graphspec"></requestform>
-  <graphbuilder v-if="state=='building'" v-bind:graphspec="graphspec"></graphbuilder>
+  <!-- <requestform v-if="['request'].includes(state)" v-bind:spec="graphspec"></requestform> -->
+  <!-- <graphbuilder v-if="state=='building'" v-bind:graphspec="graphspec"></graphbuilder> -->
 
-  <graphviewer v-if="state=='view'" v-bind:graph="graph" v-bind:drawsecondary="drawSecondary"></graphviewer>
+  <grapheditor class="grapheditor"></grapheditor>
+  <metadataviewer  class="metadataviewer" v-if="selectednode" v-bind:doi="selectednode"></metadataviewer>
+  <!-- <graphviewer v-if="state=='view'" v-bind:graph="graph" v-bind:drawsecondary="drawSecondary"></graphviewer> -->
 </div>
 
 </div>
@@ -24,11 +26,13 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { EventBus } from './main';
+import { EventBus, Graph } from './main';
 
-import requestform from '@/components/requestform.vue';
-import graphbuilder from '@/components/graphBuilder.vue';
-import graphviewer from '@/components/graphViewer.vue';
+//import requestform from '@/components/requestform.vue';
+import grapheditor from '@/components/graphEditor.vue';
+import metadataviewer from '@/components/metadataViewer.vue';
+// import graphbuilder from '@/components/graphBuilder.vue';
+// import graphviewer from '@/components/graphViewer.vue';
 // @ is an alias to /src
 
 // <graphviewer v-if="graph" v-bind:graph="graph" />
@@ -37,15 +41,18 @@ import graphviewer from '@/components/graphViewer.vue';
 export default Vue.extend({
   name: 'home',
   components: {
-    requestform,
-    graphbuilder,
-    graphviewer,
+    // requestform,
+    grapheditor,
+    metadataviewer,
+    // graphviewer,
   },
   data(){ return {
     state: 'request',
     graph: null,
     graphspec: null,
     drawSecondary: true,
+    selectednode: undefined,
+    nodelist: Graph.nodelist,
   }},
   created (){
     EventBus.$on('newgraphrequest', (graphspec) => {
@@ -56,13 +63,18 @@ export default Vue.extend({
       this.state = 'view';
       this.graph = graph;
     });
-
+    EventBus.$on('showmetadata', (doi) => {
+      this.selectednode = doi;
+    });
+    EventBus.$on('closemetadata', () => {
+      this.selectednode = undefined;
+    });
   },
 });
 </script>
 
 <style>
-
+/* https://css-tricks.com/snippets/css/a-guide-to-flexbox/ */
 body {
   font-family: monospace;
   margin: 0px;
@@ -78,15 +90,33 @@ body {
 }
 
 .main {
-  position: absolute;
+  /* position: absolute;
   left:0;
   right:0px;
   top:30px;
-  bottom:0px;
+  bottom:0px; */
+  display: flex;
+  flex-wrap: nowrap;
+  width: 100%;
+  height: 100%;
   padding:0px;
   margin:0px;
+  margin-top:30px;
   background-color: white;
 }
+.grapheditor {
+  flex-grow: 1;
+  flex-shrink: 1;
+  height: 100%;
+  /* border: 1px solid red; */
+  padding: 4px;
+}
+.metadataviewer {
+  width:400px;
+  flex-grow: 1;
+  flex-shrink: 0;
+}
+
 .header {
   position: absolute;
   left:0px;

@@ -1,5 +1,6 @@
 <template>
   <div class="metadataviewer">
+    <a class='close' href="#" v-on:click="closepanel()">close[x]</a>
 
     <div v-if="metadata">
       <span class='refnumber'>{{metadata.key}}</span>
@@ -8,7 +9,7 @@
 
 
       <p>
-      <span v-for="auth of metadata.authors">{{auth}}, </span>
+      <span v-for="auth of metadata.authors" class='author'>{{auth}}, </span>
       </p>
     {{metadata.year}} - {{metadata.journal}} <br />
     <a v-bind:href="metadata.url" target="_blank">{{metadata.doi}}</a>
@@ -16,15 +17,17 @@
     <h4>Citations:</h4>
     <ul v-if="citedby">
       <li v-for="ref in citedby">
-          <span v-if="ref.ingraph">{{`\u{2714}`}} {{ref.key}} </span>
-          <span v-else>- {{ref.key}}</span>
+          <!-- <span v-if="ref.ingraph">{{`\u{2714}`}} {{ref.key}} </span>
+          <span v-else>- {{ref.key}}</span> -->
       </li>
+
+
 
 
     </ul>
 
-<p><b>{{metadata.citedbycount}}</b> citations ({{node.citedby.length}} in the graph,
-{{metadata.citedby.length}} known)</p>
+<!-- <p><b>{{metadata.citedbycount}}</b> citations ({{node.citedby.length}} in the graph,
+{{metadata.citedby.length}} known)</p> -->
 
     <h4>References:</h4>
     <ol v-if="reference">
@@ -52,8 +55,11 @@
     <div v-else >
       No metadata for {{doi}}. <p><a href=''>Look on crossref</a></p>
 
-      {{node}}
+
     </div>
+    <h4>actions</h4>
+    <a v-if="isInGraph" href="#" v-on:click="removeFromGraph(doi)" >remove from graph</a>
+    <a v-else href="#" v-on:click="addToGraph(doi)" >add to graph</a>
 
   </div>
   </div>
@@ -61,19 +67,24 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import _ from 'lodash';
 import * as bibistore from '../modules/bibistore';
 
-import { EventBus } from '../main';
+import { EventBus, Graph} from '../main';
 
 export default Vue.extend({
   name: 'metadataViewer',
-  props: ['doi', 'graph'],
-  data(){return {
-    //metadata: undefined,
+  props: ['doi'],
+  data(){ return {
+    nodelist: Graph.nodelist,
+    graph: {nodes:[], links:[]},
   }},
   computed: {
+    isInGraph(){
+      return  _.includes(this.nodelist, this.doi)
+    },
     metadata(){
-      return bibistore.get( this.doi );
+      return bibistore.get( [this.doi] )[0];
     },
     reference(){
       if( !this.metadata.reference ){
@@ -83,37 +94,45 @@ export default Vue.extend({
       }
       return 'ref'
     },
-    node(){
-      return this.graph.nodes.filter( (node) => node.doi.toLowerCase() === this.doi.toLowerCase() )[0]
-    },
+    // node(){
+    //   return this.graph.nodes.filter( (node) => node.doi.toLowerCase() === this.doi.toLowerCase() )[0]
+    // },
     citedby(){
       return this.metadata.citedby.map( (doi)=> ({
-        key: bibistore.get(doi).key,
+        key: bibistore.get([doi])[0].key,
         doi: doi,
-        ingraph: this.isInGraph(doi),
+        ingraph: this.isDoiInGraph(doi),
       }))
     },
+  },
+  created (){
+    console.log('hello meta', this.doi)
   },
   methods: {
     parseRefField(ref){
       /* Analyse the reference information provided by CrossRef */
       if(ref.DOI){
-        const metadata = bibistore.get(ref.DOI);
+        const metadata = bibistore.get([ref.DOI])[0];
         const key = metadata? metadata.key : ref.DOI;
 
         return {
           doi: ref.DOI,
           key: key,
           instore: !!metadata,
-          ingraph: this.isInGraph(ref.DOI),
+          ingraph: this.isDoiInGraph(ref.DOI),
         }
       } else { // missing
         return ref
       }
     },
-    isInGraph(doi){
-      return !!this.graph.nodes.filter( (node) => node.doi.toLowerCase() === doi.toLowerCase() ).length
-    }
+    isDoiInGraph(doi){
+      return this.nodelist.filter( (nodedoi) => nodedoi.toLowerCase() === doi.toLowerCase() ).length == 1
+    },
+    addToGraph(doi){ Graph.addToGraph(doi);  },
+    removeFromGraph(doi){ Graph.removeFromGraph(doi); },
+    closepanel(){
+      EventBus.$emit('closemetadata')
+    },
   },
 });
 
@@ -184,5 +203,20 @@ ol > li {
 .ref-nodoi {
   color: #666;
 }
-
+.author {
+  display: inline-block;
+  margin-right: 1em;
+}
+.close {
+  float: right;
+  display:block;
+  margin:3px;
+  margin-left:5px;
+  text-decoration: none;
+  color: black;
+  font-weight: normal;
+}
+.close:hover {
+  color: blue;
+}
 </style>
