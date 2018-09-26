@@ -1,36 +1,37 @@
 <template>
   <div class="graphviewer">
 
+<div class='toolbar'>
+  <a href='#' v-on:click="rendergraph()">render</a>
+</div>
+
   <div class="graphpanel">
     <svg id='svggraph' height="100%" width="100%"></svg>
   </div>
 
-  <div class="rightpanel">
-    <!-- <a v-if="selectednode" v-on:click="selectednode=null" href='#'>hide metadata</a> -->
-    <metadataviewer v-if="selectednode" v-bind:doi="selectednode" v-bind:graph="graph" >
-    </metadataviewer>
-  </div>
+
 
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import metadataviewer from './metadataViewer'
 import * as bibistore from '../modules/bibistore';
 import * as d3 from 'd3';
 import dagreD3 from 'dagre-d3';
-import { EventBus } from '../main';
+import {EventBus, graph} from '../main';
 
 export default Vue.extend({
   name: 'GraphViewer',
-  props: ['graph', 'drawsecondary'],
+  props: [],
   data(){return {
     selectednode: null,
+    nodes: graph.state.nodelist,
+    links: graph.state.links,
     //graph: undefined,
   }},
   mounted(){
-    this.rendergraph(this.graph)
+    //this.rendergraph()
     // EventBus.$on('graphfinished', (graph) => {
     //     console.log('get event graphfinished')
     //     //this.graph = graph;
@@ -42,18 +43,23 @@ export default Vue.extend({
     //this.rendergraph(this.graph)
   },
   watch: {
-    drawsecondary: function(){
-      console.log('hello, prop watched')
-      this.rendergraph(this.graph)
-    },
+    // drawsecondary: function(){
+    //   console.log('hello, prop watched')
+    //   this.rendergraph(this.graph)
+    // },
   },
   methods: {
     doiToCssID(doi){
       doi = doi.replace(/[\./]/g, '');
       return `doi${doi}`
     },
-    rendergraph(graph){
+    rendergraph(){
       console.log(' Do you see a graph? \u{1F986} ')
+
+      if(this.nodes.length == 0){
+        console.log('zero node')
+        return 0
+      }
 
       // Create a new directed graph
       const g = new dagreD3.graphlib.Graph().setGraph({
@@ -61,10 +67,11 @@ export default Vue.extend({
       });
 
       // Append the nodes:
-      graph.nodes.forEach( (node)=>{
-        const doi = node.doi;
-        const metadata = bibistore.get(doi);
-        const gen = node.gen;
+      this.nodes.forEach( (node)=>{
+
+        const metadata = bibistore.get([node])[0];
+        const doi = metadata.doi;
+        const gen = 1;  // what?
 
         // label
         const key = metadata ? metadata.key : doi ;
@@ -86,17 +93,17 @@ export default Vue.extend({
       })
 
       // Appends the links:
-      if(this.drawsecondary){
-        graph.secondary.forEach( (links)=>{
-          g.setEdge(links[0], links[1], {
-            curve: d3.curveBasis,
-            style: "stroke: #777; fill:none; stroke-width: 1px;",
-            weight: .05,
-          });
-        })
-      }
-      graph.links.forEach( (links)=>{
-        g.setEdge(links[0], links[1], {
+      // if(this.drawsecondary){
+      //   graph.secondary.forEach( (links)=>{
+      //     g.setEdge(links[0], links[1], {
+      //       curve: d3.curveBasis,
+      //       style: "stroke: #777; fill:none; stroke-width: 1px;",
+      //       weight: .05,
+      //     });
+      //   })
+      // }
+      this.links.forEach( (link)=>{
+        g.setEdge(link[0], link[1], {
           curve: d3.curveBasis,
           style: "stroke: #001; fill:none; stroke-width: 2px;",
           weight: 1,
@@ -143,6 +150,7 @@ export default Vue.extend({
           const _node = g.node(id);
           // console.log("Clicked ", id, this);
           this.selectednode = id;
+          EventBus.$emit('showmetadata', id);
           svg.selectAll('.node').classed('selected', false);
           svg.selectAll('#'+this.doiToCssID(id)).classed('selected', true);
         });
@@ -161,7 +169,6 @@ export default Vue.extend({
     },
   },
   components: {
-    metadataviewer,
   }
 });
 
@@ -172,10 +179,8 @@ export default Vue.extend({
 
 <style>
 svg {
-  border: solid 1px black;
   width: 100%;
   height: 100%;
-
 }
 
  /* graph  */
@@ -205,6 +210,7 @@ svg .node.gen2 rect {
 }
 svg .node.selected rect {
   filter: drop-shadow( 1px 1px 6px #ff5588 );
+  fill: red;
 }
 /* svg .node.selected:hover rect {
   filter: drop-shadow( 1px 1px 4px #ff5588 );
@@ -232,7 +238,7 @@ svg .node.norefprovided rect {
 } */
 
 /* Page layout */
-.rightpanel {
+/* .rightpanel {
   position: absolute;
   top:5px;
   right: 2px;
@@ -245,16 +251,28 @@ svg .node.norefprovided rect {
   overflow-x: auto;
 
 }
-
-.graphpanel {
-  position: absolute;
-  top:5px;
-  left: 5px;
-  bottom: 8px;
-  right:420px;
-
+ */
+.graphviewer {
+  position: relative;
+  /* height:100%; */
   box-sizing: border-box;
-  box-shadow: inset 2px 3px 6px 0px #e5e5e4;
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+}
+.toolbar {
+  position: absolute;
+  top:10px;
+  right: 10px;
+  /* border: solid 2px #F44; */
+}
+.graphpanel {
+  flex: 1;
+  margin: 3px;
+  /* height:100%; */
+  box-sizing: border-box;
+  border: solid 1px black;
+  box-shadow: inset 3px 3px 6px 0px #e5e5e4;
 }
 
 </style>

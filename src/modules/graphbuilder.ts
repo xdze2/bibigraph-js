@@ -17,6 +17,7 @@ Steps:
 
 import * as bibistore from "./bibistore";
 import {graphreduce} from './transitiveReduction';
+import _ from 'lodash';
 
 interface IGraph {
   [key: string]: {
@@ -127,4 +128,26 @@ export function upwardGraph(graph: IGraph, selectednodes: string[]) {
 
   const [TR, secondary] = graphreduce(links);
   return { nodes: nodes, links: TR, secondary:secondary };
+}
+
+
+
+export function addLinks(nodes: string[]) {
+  /* find the links between the nodes */
+
+  let links: [string, string][] = [];
+
+  nodes = nodes.map( (doi) => doi.toLowerCase() )
+
+  bibistore.get(nodes).forEach( (metadata) => {
+    const parent = metadata.doi;
+    const refs = metadata.referenceWithDOI.filter( (doi) =>  _.includes(nodes, doi.toLowerCase()));
+    console.log('len refs in :', refs.length)
+    refs.forEach( (ref) => {
+      links.push([ref.toLowerCase(), parent.toLowerCase()])
+    })
+  })
+
+  //const [TR, secondary] = graphreduce(links);
+  return links//{ nodes: nodes, links: TR, secondary:secondary };
 }
