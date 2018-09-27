@@ -115,8 +115,10 @@ function transitiveReduction(nodes: Set<string>, TC: Set<string>): Set<string> {
 }
 
 export function graphreduce(links: Array<[string, string]>){
-  /* Return the transitve reduction of the graph
+  /* Return the transitve reduction (list of links) of the graph
     input: list of links [source, target]
+
+    example: const [TR, secondary] = graphreduce(links);
    */
   const [adj, nodes] = adjacency(links);
 

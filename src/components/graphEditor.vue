@@ -1,24 +1,60 @@
 <template>
 <div class="graphEditor" >
 
-
 <h3>node list</h3>
-<table>
+<p v-if='selectedNodes.length>0'>{{selectedNodes.length}} selected:
+  <a href='#' v-on:click="removeFromGraph(selectedNodes); selectedNodes=[]; selectall=false;">remove</a>,
+  <a href='#' v-on:click="searchRefsOf(selectedNodes);">search missing refs.</a>,
+  add refs. to the graph
+</p>
+<table v-if='graphmetadata.length'>
 <tr>
+  <th><input type="checkbox" id="selectall" v-model="selectall"></th>
   <th>key</th>
   <th>year</th>
-  <th>citedby count</th>
-  <th>nbr ref. w/ doi</th>
+  <th style='text-align:right;'>citations</th>
+  <th>(known)</th>
+  <th>[in graph]</th>
+  <th>refs.</th>
+  <th>(doi)</th>
+  <th>[in graph]</th>
   <th>actions</th>
 </tr>
 <tr v-for="metadata in graphmetadata">
+  <td class='selectbox'><input type="checkbox" v-model="selectedNodes"
+    v-bind:id="metadata.doi"  v-bind:value="metadata.doi"></td>
   <td><a href="#" v-on:click="showmetadata(metadata.doi)">{{metadata.key}}</a></td>
   <td>{{metadata.year}}</td>
-  <td>{{metadata.citedbycount}}</td>
-  <td> {{metadata.referenceWithDOI.length}} <a href="#" v-on:click="addRefsOf([metadata.doi])">search</a></td>
-  <td> <a href='#' v-on:click="removeFromGraph(metadata.doi)">[-]</a></td>
+  <!-- cited by -->
+  <td style='text-align:right;'>{{metadata.citedbycount}}</td>
+  <td>({{metadata.citedby.length}})
+    <a href='#' v-if="nbrInGraph(metadata.citedby) < metadata.citedby.length"
+       v-on:click="addToGraph(metadata.citedby)">add</a>
+  </td>
+  <td>{{nbrInGraph(metadata.citedby)}}
+  </td>
+  <!-- references -->
+  <td>{{metadata.referencescount}}</td>
+  <td> {{metadata.referenceWithDOI.length}}
+    <a href="#" v-if="metadata.referenceWithDOI.length&&hasUnknownRefs(metadata.referenceWithDOI)"
+        v-on:click="searchRefsOf([metadata.doi])">search</a>
+    <span v-else-if="!metadata.referenceWithDOI.length">:/</span>
+    <a href='#' v-else-if="nbrInGraph(metadata.referenceWithDOI) < metadata.referenceWithDOI.length"
+       v-on:click="addToGraph(metadata.referenceWithDOI)">add</a>
+    <span v-else>&#10003;</span>
+  </td>
+  <td>
+    ({{nbrInGraph(metadata.referenceWithDOI)}})
+    <a href='#' v-if="nbrInGraph(metadata.referenceWithDOI)"
+       v-on:click="removeFromGraph(metadata.referenceWithDOI)">remove</a>
+  </td>
+  <!-- action -->
+  <td>
+    <a href='#' v-on:click="removeFromGraph([metadata.doi])">remove </a>
+  </td>
 </tr>
 </table>
+<p v-else> no node </a>
 
 
 
@@ -26,7 +62,7 @@
 <p class='storelist'>
   <span v-for="doi in alldoi" class='store_chip'>
   <a href="#" v-on:click="showmetadata(doi)">{{doi | key}}</a>
-  <a href='#' v-if="!isInNodelist(doi)" v-on:click="addToGraph(doi)">[+]</a>
+  <a href='#' v-if="!isInNodelist(doi)" v-on:click="addToGraph([doi])">[add]</a>
   </span>
 </p>
 
@@ -53,7 +89,7 @@ import Vue from 'vue';
 import {EventBus, graph} from '../main';
 import * as bibistore from '../modules/bibistore';
 import {addLinks} from '../modules/graphbuilder';
-
+import _ from 'lodash';
 
 
 
@@ -79,11 +115,19 @@ export default Vue.extend({
       alldoi: undefined,
       nodelist: graph.state.nodelist,
       links: graph.state.links,
+      selectedNodes: [],
+      selectall: false,
   }; },
   computed: {
       doilist (){ return this.parse_doitext(this.doitext) },
       graphmetadata (){ return bibistore.get(this.nodelist) }
       //allmetadata (){ return bibistore.get(this.alldoi) },
+  },
+  watch: {
+    // whenever question changes, this function will run
+    selectall: function (newValue, oldValue) {
+      this.selectedNodes = newValue? this.nodelist.slice(0): [];
+    },
   },
   filters: {
     key (doi){
@@ -107,13 +151,13 @@ export default Vue.extend({
     parse_doitext(doitext: string): string[]{
       return this.doitext.split(/[,;\s]/).filter( (x) => x )
     },
-    addToGraph(doi){ graph.addToGraph(doi); },
-    removeFromGraph(doi){ graph.removeFromGraph(doi); },
+    addToGraph(doilist){ graph.addToGraph(doilist); },
+    removeFromGraph(doilist){ graph.removeFromGraph(doilist); },
     isInNodelist(doi){
       const match = this.nodelist.filter( (nodedoi) => nodedoi == doi )
       return match.length > 0
     },
-    addRefsOf(doilist){
+    searchRefsOf(doilist){
       const metadata = bibistore.get(doilist)
       var refs = metadata.map( (md) => md.referenceWithDOI )
       refs =  [].concat(...refs)
@@ -126,6 +170,15 @@ export default Vue.extend({
     showmetadata (doi){
       EventBus.$emit('showmetadata', doi);
     },
+    hasUnknownRefs(missingreflist){
+      missingreflist = bibistore.get(missingreflist)
+                          .filter( (metadata) => !metadata)
+      return missingreflist.length
+    },
+    nbrInGraph(doilist){
+      return doilist.filter( (doi) => _.includes(this.nodelist, doi.toLowerCase()) )
+                    .length
+    }
   },
   components: {
   }
@@ -137,14 +190,20 @@ export default Vue.extend({
 .graphEditor {
   padding:30px;
   padding-top:3px;
+
 }
 
 table {
-  width:70%;
+  max-width: 900px;
 }
 th {
   text-align: left;
 }
+tr, td {
+  padding: 0;
+  margin: 0;
+}
+
 a {
   text-decoration: none;
   color: blue;
@@ -179,4 +238,5 @@ p.storelist {
 .store_chip::after {
   content: ' ';
 }
+
 </style>

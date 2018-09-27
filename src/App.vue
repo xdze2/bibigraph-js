@@ -131,6 +131,7 @@ body {
   flex-shrink: 1;
   flex-basis: auto;
   /* border: 3px solid red; */
+  overflow-y: auto;
 }
 .rightpanel {
   width: 400px;

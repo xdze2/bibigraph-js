@@ -16,18 +16,27 @@
 
     <h4>Actions</h4>
     <div class='actionsection'>
-      <a v-if="isInGraph" href="#" v-on:click="removeFromGraph(doi)" class='action'>remove from graph</a>
-      <a v-else href="#" v-on:click="addToGraph(doi)" class='action'>add to graph</a>
+      <a v-if="isInGraph" href="#" v-on:click="removeFromGraph([doi])" class='action'>remove from graph</a>
+      <a v-else href="#" v-on:click="addToGraph([doi])" class='action'>add to graph</a>
       <br />
 
     </div>
     <h4>Citations</h4>
-    <ul v-if="citedby">
-      <li v-for="ref in citedby">
-          <!-- <span v-if="ref.ingraph">{{`\u{2714}`}} {{ref.key}} </span>
-          <span v-else>- {{ref.key}}</span> -->
-      </li>
-    </ul>
+    Cited {{metadata.citedbycount}} times.
+    <table v-if="citedby" cellpadding="0" cellspacing="0">
+      <tr v-for="ref in citedby">
+          <td v-if="ref.ingraph">{{`\u{2714}`}}</td>
+          <td v-else>-</td>
+          <td class='refkey'>{{ref.key}}</td>
+          <td>{{ref.citedbycount}}</td>
+          <td>
+            <a href="#" v-on:click="showmetadata(ref.doi)" class='action'>view</a>
+            <a href="#" v-if="ref.ingraph" v-on:click="removeFromGraph([ref.doi])" class='action'>remove</a>
+            <a href="#" v-else v-on:click="addToGraph([ref.doi])" class='action'>add</a>
+          </td>
+
+      </tr>
+    </table>
 
 <!-- <p><b>{{metadata.citedbycount}}</b> citations ({{node.citedby.length}} in the graph,
 {{metadata.citedby.length}} known)</p> -->
@@ -43,7 +52,7 @@
           <td>{{ref.citedbycount}}</td>
           <td>
             <a href="#" v-on:click="showmetadata(ref.doi)" class='action'>view</a>
-            <a href="#" v-on:click="removeFromGraph(ref.doi)" class='action'>remove</a>
+            <a href="#" v-on:click="removeFromGraph([ref.doi])" class='action'>remove</a>
           </td>
         </template>
         <template v-else-if="ref.instore">
@@ -51,7 +60,7 @@
           <td>{{ref.citedbycount}}</td>
           <td>
             <a href="#" v-on:click="showmetadata(ref.doi)" class='action'>view</a>
-            <a href="#" v-on:click="addToGraph(ref.doi)" class='action'>add</a>
+            <a href="#" v-on:click="addToGraph([ref.doi])" class='action'>add</a>
           </td>
         </template>
         <template v-else-if="ref.doi">

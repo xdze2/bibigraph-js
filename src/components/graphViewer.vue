@@ -2,7 +2,8 @@
   <div class="graphviewer">
 
 <div class='toolbar'>
-  <a href='#' v-on:click="rendergraph()">render</a>
+  <a href='#' v-on:click="rendergraph()">render</a><br />
+  <input type="checkbox" id="drawsecondary" v-model="drawsecondary"> draw secondary
 </div>
 
   <div class="graphpanel">
@@ -21,13 +22,16 @@ import * as d3 from 'd3';
 import dagreD3 from 'dagre-d3';
 import {EventBus, graph} from '../main';
 
+import * as builder from '../modules/graphbuilder';
+import {graphreduce} from '../modules/transitiveReduction';
+
 export default Vue.extend({
   name: 'GraphViewer',
   props: [],
-  data(){return {
+  data(){ return {
     selectednode: null,
     nodes: graph.state.nodelist,
-    links: graph.state.links,
+    drawsecondary: true,
     //graph: undefined,
   }},
   mounted(){
@@ -43,10 +47,14 @@ export default Vue.extend({
     //this.rendergraph(this.graph)
   },
   watch: {
-    // drawsecondary: function(){
-    //   console.log('hello, prop watched')
-    //   this.rendergraph(this.graph)
-    // },
+    drawsecondary: function(){
+      console.log('hello, prop watched')
+      this.rendergraph()
+    },
+    nodes: function(){
+      console.log('render!')
+      this.rendergraph()
+    },
   },
   methods: {
     doiToCssID(doi){
@@ -54,6 +62,9 @@ export default Vue.extend({
       return `doi${doi}`
     },
     rendergraph(){
+
+
+
       console.log(' Do you see a graph? \u{1F986} ')
 
       if(this.nodes.length == 0){
@@ -93,16 +104,18 @@ export default Vue.extend({
       })
 
       // Appends the links:
-      // if(this.drawsecondary){
-      //   graph.secondary.forEach( (links)=>{
-      //     g.setEdge(links[0], links[1], {
-      //       curve: d3.curveBasis,
-      //       style: "stroke: #777; fill:none; stroke-width: 1px;",
-      //       weight: .05,
-      //     });
-      //   })
-      // }
-      this.links.forEach( (link)=>{
+      const [links, secondary] = this.getLinks()
+
+      if(this.drawsecondary){
+        secondary.forEach( (links)=>{
+          g.setEdge(links[0], links[1], {
+            curve: d3.curveBasis,
+            style: "stroke: #777; fill:none; stroke-width: 1px;",
+            weight: .05,
+          });
+        })
+      }
+      links.forEach( (link)=>{
         g.setEdge(link[0], link[1], {
           curve: d3.curveBasis,
           style: "stroke: #001; fill:none; stroke-width: 2px;",
@@ -166,6 +179,11 @@ export default Vue.extend({
 
       // svg.selectAll(".node")
       //   .append("circle").attr("cx", 0).attr("cy", 0).attr("r", 10)
+    },
+    getLinks(){
+      const alllinks = builder.addLinks(this.nodes)
+      const [TR, secondary] = graphreduce(alllinks);
+      return [TR, secondary];
     },
   },
   components: {
