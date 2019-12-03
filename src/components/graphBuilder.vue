@@ -33,17 +33,17 @@ export default Vue.extend({
     },
     buildGraph(graphspec) {
       this.pushLog( 'Start a new graph...' )
-      this.pushLog( `from ${graphspec.doilist.length} selected nodes, for 2 gen` );
+      this.pushLog( `from ${graphspec.doilist.length} selected nodes, for 2 generations` );
 
       const graph = graphbuildingmachine.init_graph( graphspec.doilist );
 
       graphbuildingmachine.growOneGen( graph )
         .then( (graph) => graphbuildingmachine.growOneGen( graph ) )
         .then( (graph) => {
-          // select:
+          // select source nodes:
           let nodes = graphbuildingmachine.selectTopCited(graph, graphspec.ntop);
           console.log('selected nodes: ', nodes );
-          // upward:
+          // re-build graph upward:
           const nodelinks = graphbuildingmachine.upwardGraph( graph, nodes );
           console.log('upward graph: ', nodelinks );
 

@@ -3,11 +3,11 @@
 
 <div class="header">
   <h1>bibigraph</h1>
-
+  <!-- navigation bar -->
   <a href="javascript:" v-if="mainpanel=='editor'" v-on:click="mainpanel='graph'" class='navlink'>graph</a>
   <a href="javascript:" v-else-if="mainpanel=='graph'" v-on:click="mainpanel='editor'" class='navlink'>edit</a>
 
-  <!-- <span class='debug'>state: {{state}}</span> -->
+  <span class='debug'>state: {{state}} -- mainpanel:{{mainpanel}}</span>
   <!-- <a href="javascript:" v-if="state=='view'" v-on:click="state='request'" class='navlink'>create</a> -->
   <!-- <a href="javascript:" v-else-if="graph" v-on:click="state='view'" class='navlink'>←</a> -->
 
@@ -18,12 +18,14 @@
   <!-- <a href="#" class='navlink'>about</a> -->
 </div>
 <div class="main">
-  <!-- <requestform v-if="['request'].includes(state)" v-bind:spec="graphspec"></requestform> -->
-  <!-- <graphbuilder v-if="state=='building'" v-bind:graphspec="graphspec"></graphbuilder> -->
-
+   <!--  v-if="['request'].includes(state)" -->
   <div class='leftpanel'>
-    <grapheditor v-if="mainpanel=='editor'" class="grapheditor"></grapheditor>
-    <graphviewer v-else-if="mainpanel=='graph'"></graphviewer>
+    <requestform v-if="state!='building'" v-bind:spec="graphspec"></requestform>
+
+    <graphbuilder v-if="state=='building'" v-bind:graphspec="graphspec"></graphbuilder>
+<!--v-if="mainpanel=='editor'" v-else-if="mainpanel=='graph'"-->
+    <grapheditor  class="grapheditor"></grapheditor>
+    <graphviewer ></graphviewer>
   </div>
   <metadataviewer v-if="selectednode" class="rightpanel" v-bind:doi="selectednode">
   </metadataviewer>
@@ -37,10 +39,10 @@
 import Vue from 'vue';
 import { EventBus, graph } from './main';
 
-//import requestform from '@/components/requestform.vue';
+import requestform from '@/components/requestform.vue';
 import grapheditor from '@/components/graphEditor.vue';
 import metadataviewer from '@/components/metadataViewer.vue';
-// import graphbuilder from '@/components/graphBuilder.vue';
+import graphbuilder from '@/components/graphBuilder.vue';
 import graphviewer from '@/components/graphViewer.vue';
 // @ is an alias to /src
 
@@ -50,10 +52,11 @@ import graphviewer from '@/components/graphViewer.vue';
 export default Vue.extend({
   name: 'home',
   components: {
-    // requestform,
+    requestform,
     grapheditor,
     metadataviewer,
     graphviewer,
+    graphbuilder,
   },
   data(){ return {
     mainpanel: 'editor',
@@ -62,15 +65,22 @@ export default Vue.extend({
     drawSecondary: true,
     selectednode: undefined,
     nodelist: graph.state.nodelist,
+    state: "hello",
   }},
   created (){
     EventBus.$on('newgraphrequest', (graphspec) => {
+      console.log('get a new graph request')
       this.state = 'building';
       this.graphspec = graphspec;
     });
-    EventBus.$on('graphfinished', (graph) => {
-      this.state = 'view';
-      this.graph = graph;
+    EventBus.$on('graphfinished', (newgraph) => {
+      console.log('the graph is build', newgraph)
+      console.log('but what the graph is', graph)
+      this.state = 'graph';
+      //graph.state = newgraph;
+      graph.addToGraph(newgraph.nodes.map( (x) => x.doi ));
+      this.mainpanel = 'graph';
+      this.$forceUpdate();
     });
     EventBus.$on('showmetadata', (doi) => {
       this.selectednode = doi;
@@ -97,8 +107,9 @@ body {
   box-sizing: border-box;
 }
 .debug {
-  color: #777;
-  border: solid red 1px;
+  color: red;
+  background-color: #bbb;
+  padding: 3px;
 }
 .fullpage {
   display: flex;

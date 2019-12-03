@@ -1,7 +1,7 @@
 <template>
 <div class="graphEditor" >
 
-<h3>node list</h3>
+<h3 title="nodes in the graph">node list</h3>
 <p v-if='selectedNodes.length>0'>{{selectedNodes.length}} selected:
   <a href='#' v-on:click="removeFromGraph(selectedNodes); selectedNodes=[]; selectall=false;">remove</a>,
   <a href='#' v-on:click="searchRefsOf(selectedNodes);">search missing refs.</a>,
@@ -58,11 +58,11 @@
 
 
 
-<h3>store</h3>
+<h3 title="all nodes known">store</h3>
 <p class='storelist'>
   <span v-for="doi in alldoi" class='store_chip'>
-  <a href="#" v-on:click="showmetadata(doi)">{{doi | key}}</a>
-  <a href='#' v-if="!isInNodelist(doi)" v-on:click="addToGraph([doi])">[add]</a>
+  <a href="#" v-on:click="showmetadata(doi)" title="🖰 show metadata">{{doi | key}}</a>
+  <a href='#' v-if="!isInNodelist(doi)" v-on:click="addToGraph([doi])" title="🖰 add to the graph">[add]</a>
   </span>
 </p>
 
@@ -80,6 +80,7 @@
 {{doilist}}
 </p>
 <span v-if="waiting">wait...</span>
+
 
 </div>
 </template>

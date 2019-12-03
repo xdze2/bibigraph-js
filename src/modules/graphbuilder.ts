@@ -63,7 +63,8 @@ export function growOneGen(graph: IGraph) {
   console.log(`\u{1F6B2} Expand generation #${graphLastgen}, ${lastgenDoi.length} sub-nodes.`);
 
   // Look for the refs:
-  const graphPromise = bibistore.getmany( lastgenDoi ).then( (data) => {
+  // TODO: QUERY <-- GETorQUERY
+  const graphPromise = bibistore.query( lastgenDoi ).then( (data) => {
       data.forEach( (metadata: bibistore.IMetadata) => {
           const doi = metadata.doi.toLowerCase();
           const referenceList = metadata.referenceWithDOI;

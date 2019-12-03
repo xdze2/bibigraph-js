@@ -44,7 +44,7 @@ export default Vue.extend({
   name: 'requestform',
   props: ['spec'],
   data: () => { return {
-      doitext: '',
+      doitext: '10.1103/physreva.51.1015, 10.1143/jps',
       ngen: 2,
       ntop: 5,
   }; },
@@ -52,20 +52,21 @@ export default Vue.extend({
     doilist (){ return this.doitext.split(/[,;\s]/).filter( (x) => x ) },
     analyseddoilist(){
       return this.doilist.map( (doi) => {
-        const metadata = bibistore.get(doi);
+        const metadata = bibistore.get([doi])[0];
         return {
           key: (metadata ? metadata.key : doi),
           instore: (metadata ? true : false),
           notvalid: !bibistore.isValidDOI(doi),
-        }
+        };
       })
     },
     allstoreddoi (){
-      return bibistore.getall_doi()
+      return bibistore.alldoi()
     }
   },
   methods: {
     submit(doitext: string) {
+      console.log('go!')
       const doilist = doitext.split(/[,;\s]/).filter( (x) => x );
       const graphspec = {
         doilist:doilist,
